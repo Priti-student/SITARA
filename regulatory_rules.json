@@ -1,0 +1,284 @@
+{
+  "metadata": {
+    "version": "0.1.0",
+    "description": "Prototype regulatory rules for industrial approvals",
+    "last_updated": "2026-09-28"
+  },
+
+  "rules": [
+    {
+  "rule_id": "CG_ENV_EC_001",
+  "jurisdiction": "Central",
+  "level": "Central",
+  "authority": "Ministry of Environment, Forest and Climate Change",
+  "approval": "Environmental Clearance",
+  "rule_type": "applicability",
+  "conditions": {
+    "project_requires_environmental_clearance": true
+  },
+  "action": {
+    "approval_required": true,
+    "stage": "pre_establishment"
+  },
+  "required_documents": [
+    "application_documents_as_prescribed",
+    "project_specific_environmental_documents"
+  ],
+  "source": {
+    "title": "PARIVESH - Environmental Clearance",
+    "url": "https://parivesh.nic.in/"
+  },
+  "effective_from": null,
+  "last_verified": "2026-09-28",
+  "verification_status": "official_source_verified"
+},
+{
+  "rule_id": "CG_PARIVESH_001",
+  "jurisdiction": "Central",
+  "level": "Central",
+  "authority": "Ministry of Environment, Forest and Climate Change",
+  "approval": "PARIVESH Clearance Workflow",
+  "rule_type": "workflow",
+  "conditions": {
+    "clearance_type": [
+      "environmental",
+      "forest",
+      "wildlife",
+      "crz"
+    ]
+  },
+  "action": {
+    "online_submission": true,
+    "status_tracking": true
+  },
+  "required_documents": [],
+  "source": {
+    "title": "PARIVESH",
+    "url": "https://parivesh.nic.in/"
+  },
+  "effective_from": null,
+  "last_verified": "2026-09-28",
+  "verification_status": "official_source_verified"
+},
+{
+  "rule_id": "CG_ESI_001",
+  "jurisdiction": "Central",
+  "level": "Central",
+  "authority": "Employees' State Insurance Corporation",
+  "approval": "ESI Employer Registration",
+  "rule_type": "applicability",
+  "conditions": {
+    "establishment_type": "factory",
+    "employee_count_gte": 10
+  },
+  "action": {
+    "registration_required": true
+  },
+  "required_documents": [
+    "employer_details",
+    "employee_details",
+    "establishment_details"
+  ],
+  "source": {
+    "title": "ESIC Employer Registration",
+    "url": "https://portal.esic.gov.in/"
+  },
+  "effective_from": null,
+  "last_verified": "2026-09-28",
+  "verification_status": "official_source_verified"
+},
+{
+  "rule_id": "MH_MPCB_CTE_001",
+  "jurisdiction": "Maharashtra",
+  "level": "State",
+  "authority": "Maharashtra Pollution Control Board",
+  "approval": "Consent to Establish",
+  "rule_type": "applicability",
+  "conditions": {
+    "pollution_relevant_activity": true
+  },
+  "action": {
+    "approval_required": true,
+    "stage": "pre_establishment"
+  },
+  "required_documents": [
+    "capital_investment_details",
+    "manufacturing_process",
+    "industry_registration",
+    "land_ownership_certificate",
+    "pollution_control_system_proposal"
+  ],
+  "source": {
+    "title": "MPCB Consent Under Water & Air Act",
+    "url": "https://mpcb.gov.in/en/consentmgt/water-and-air-act"
+  },
+  "effective_from": null,
+  "last_verified": "2026-09-28",
+  "verification_status": "official_source_verified"
+},
+{
+  "rule_id": "MH_MPCB_CTO_001",
+  "jurisdiction": "Maharashtra",
+  "level": "State",
+  "authority": "Maharashtra Pollution Control Board",
+  "approval": "Consent to Operate",
+  "rule_type": "applicability",
+  "conditions": {
+    "consent_to_establish_obtained": true,
+    "pollution_relevant_activity": true
+  },
+  "action": {
+    "approval_required": true,
+    "stage": "pre_operation"
+  },
+  "required_documents": [
+    "capital_investment_details",
+    "manufacturing_process",
+    "industry_registration",
+    "land_ownership_certificate",
+    "pollution_control_system_details",
+    "previous_consent_if_applicable"
+  ],
+  "source": {
+    "title": "MPCB Consent Information",
+    "url": "https://www.mpcb.gov.in/en/node/4201"
+  },
+  "effective_from": null,
+  "last_verified": "2026-09-28",
+  "verification_status": "official_source_verified"
+},
+{
+  "rule_id": "MH_MPCB_RENEWAL_001",
+  "jurisdiction": "Maharashtra",
+  "level": "State",
+  "authority": "Maharashtra Pollution Control Board",
+  "approval": "Consent to Operate Renewal",
+  "rule_type": "renewal",
+  "conditions": {
+    "existing_consent": true
+  },
+  "action": {
+    "renewal_required": true,
+    "alert_before_expiry_days": 60
+  },
+  "required_documents": [
+    "previous_consent_copy",
+    "compliance_information",
+    "required_environmental_reports"
+  ],
+  "source": {
+    "title": "MPCB Consent Under Water & Air Act",
+    "url": "https://mpcb.gov.in/en/consentmgt/water-and-air-act"
+  },
+  "effective_from": null,
+  "last_verified": "2026-09-28",
+  "verification_status": "official_source_verified"
+},
+{
+  "rule_id": "MH_FIRE_NOC_001",
+  "jurisdiction": "Maharashtra",
+  "level": "State",
+  "authority": "Maharashtra Fire & Emergency Services",
+  "approval": "Fire Approval / Provisional NOC",
+  "rule_type": "applicability",
+  "conditions": {
+    "building_or_industrial_activity_requires_fire_approval": true
+  },
+  "action": {
+    "approval_required": true,
+    "stage": "pre_operation"
+  },
+  "required_documents": [
+    "application",
+    "architectural_drawings",
+    "floor_area_calculation",
+    "industrial_process_flow",
+    "fire_prevention_details",
+    "raw_material_details",
+    "finished_goods_details",
+    "applicable_other_agency_approvals"
+  ],
+  "source": {
+    "title": "Maharashtra Fire & Emergency Services - E-Approval",
+    "url": "https://mahafireservice.gov.in/e-fire.php"
+  },
+  "effective_from": null,
+  "last_verified": "2026-09-28",
+  "verification_status": "official_source_verified"
+},
+{
+  "rule_id": "MH_FIRE_FINAL_001",
+  "jurisdiction": "Maharashtra",
+  "level": "State",
+  "authority": "Maharashtra Fire & Emergency Services",
+  "approval": "Final Fire NOC",
+  "rule_type": "workflow",
+  "conditions": {
+    "provisional_fire_noc_issued": true,
+    "construction_completed": true
+  },
+  "action": {
+    "final_inspection_required": true,
+    "final_noc_required": true
+  },
+  "required_documents": [
+    "approved_drawings",
+    "provisional_noc",
+    "inspection_certificate"
+  ],
+  "source": {
+    "title": "Maharashtra Fire & Emergency Services - E-Approval",
+    "url": "https://mahafireservice.gov.in/e-fire.php"
+  },
+  "effective_from": null,
+  "last_verified": "2026-09-28",
+  "verification_status": "official_source_verified"
+},
+{
+  "rule_id": "MH_FIRE_ACT_001",
+  "jurisdiction": "Maharashtra",
+  "level": "State",
+  "authority": "Maharashtra Fire & Emergency Services",
+  "regulation": "Maharashtra Fire Prevention and Life Safety Measures Act",
+  "rule_type": "regulatory_source",
+  "versions": [
+    "2006",
+    "2023",
+    "2025"
+  ],
+  "source": {
+    "title": "Fire Acts, Rules & NBC",
+    "url": "https://mahafireservice.gov.in/fire-act.php"
+  },
+  "last_verified": "2026-09-28",
+  "verification_status": "official_source_verified"
+},
+{
+  "rule_id": "MH_MPCB_CATEGORY_001",
+  "jurisdiction": "Maharashtra",
+  "level": "State",
+  "authority": "Maharashtra Pollution Control Board",
+  "rule_type": "classification",
+  "conditions": {
+    "industry_type": [
+      "distillery",
+      "sugar",
+      "fertilizer",
+      "cement",
+      "thermal_power",
+      "pharmaceuticals"
+    ]
+  },
+  "action": {
+    "pollution_category": "RED"
+  },
+  "source": {
+    "title": "MPCB Categorisation of Industries",
+    "url": "https://www.mpcb.gov.in/en/consent-management/rog"
+  },
+  "effective_from": null,
+  "last_verified": "2026-09-28",
+  "verification_status": "official_source_verified"
+}
+  ]
+}

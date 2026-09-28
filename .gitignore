@@ -1,0 +1,23 @@
+# Logs and databases
+*.log
+*.sqlite
+
+# Environments and Secrets (NEVER commit these)
+.env
+.env.local
+.env.*.local
+
+# Dependency directories (Node, Python, etc.)
+node_modules/
+__pycache__/
+*.pyc
+env/
+venv/
+.venv/
+
+# Build and IDE outputs
+dist/
+build/
+.out/
+.vscode/
+.idea/
