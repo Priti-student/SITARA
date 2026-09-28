@@ -44,6 +44,8 @@ model User {
   roles         UserRole[]
   refreshTokens RefreshToken[]
   memberships   UnitMember[]
+  notifications Notification[]
+  createdChecklists Checklist[]
 
   @@index([status])
 }
@@ -97,10 +99,16 @@ model Unit {
   address        String?
   pincode        String?
   isVerified     Boolean  @default(false)
+  employeeCount  Int?
+  capitalInvestment Int?  // approximate INR (prototype context)
+  establishmentType String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  members UnitMember[]
+  members    UnitMember[]
+  checklists Checklist[]
+
+  @@index([isVerified])
 }
 
 model UnitMember {
@@ -114,4 +122,166 @@ model UnitMember {
 
   @@unique([unitId, userId])
   @@index([userId])
+}
+
+// ─────────────────── Phase 2: master data & rules ───────────────
+
+/// Internal department / desk that processes an approval type online.
+model Department {
+  id          String   @id @default(uuid())
+  code        String   @unique // ENV | FIRE | LABOUR | INDUSTRY
+  name        String
+  description String?
+
+  approvalTypes ApprovalType[]
+  rules         RegulatoryRule[]
+}
+
+/// Issuing / regulating authority (e.g. MoEFCC, MPCB, Fire Services, ESIC).
+model Authority {
+  id           String @id @default(uuid())
+  name         String @unique
+  jurisdiction String // Central | Maharashtra | ...
+  level        String // Central | State
+  website      String?
+
+  approvalTypes ApprovalType[]
+  rules         RegulatoryRule[]
+  createdAt     DateTime @default(now())
+}
+
+/// An approval / permission / licence / NOC / registration offered on the platform.
+model ApprovalType {
+  id          String     @id @default(uuid())
+  code        String     @unique // ENV_EC | MPCB_CTE | MPCB_CTO | FIRE_NOC_PROV | FIRE_NOC_FINAL | ESI_REG
+  name        String
+  description String?
+  stage       String     @default("any") // pre_establishment | pre_operation | operation | post_operation | any
+  validityDays Int?      // default validity for approvals (renewal engine uses this)
+
+  authorityId String
+  departmentId String
+  createdAt   DateTime   @default(now())
+
+  authority    Authority           @relation(fields: [authorityId], references: [id])
+  department   Department          @relation(fields: [departmentId], references: [id])
+  requirements ApprovalRequirement[]
+  rules        RegulatoryRule[]
+  checklistItems ChecklistItem[]
+}
+
+/// Master list of documents an applicant may be required to attach.
+model DocumentType {
+  id          String  @id @default(uuid())
+  code        String  @unique
+  name        String
+  description String?
+  isMandatory Boolean @default(true)
+
+  requirements ApprovalRequirement[]
+}
+
+/// Which document types an approval type needs (many-to-many join).
+model ApprovalRequirement {
+  id             String @id @default(uuid())
+  approvalTypeId String
+  documentTypeId String
+
+  approvalType ApprovalType @relation(fields: [approvalTypeId], references: [id], onDelete: Cascade)
+  documentType DocumentType @relation(fields: [documentTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([approvalTypeId, documentTypeId])
+  @@index([documentTypeId])
+}
+
+/// A regulatory rule (applicability / workflow / classification / document / renewal).
+/// Conditions & action are stored as JSON for the rule engine.
+model RegulatoryRule {
+  id               String   @id @default(uuid())
+  ruleId           String   @unique
+  ruleType         String // applicability | workflow | classification | document | regulatory_source | renewal | scheme_eligibility
+  jurisdiction     String
+  level            String
+  authorityName    String   // denormalised display name (matched to Authority)
+  authorityId      String?
+  departmentId     String?
+  approvalTypeId   String?
+  conditions       Json
+  action           Json
+  requiredDocuments Json     @default("[]")
+  source           Json
+  regulation       String?
+  effectiveFrom    DateTime?
+  lastVerified     DateTime?
+  verificationStatus String @default("unverified")
+  priority         Int      @default(0)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  authority    Authority?     @relation(fields: [authorityId], references: [id], onDelete: SetNull)
+  department   Department?    @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  approvalType ApprovalType?  @relation(fields: [approvalTypeId], references: [id], onDelete: SetNull)
+
+  @@index([isActive, ruleType])
+  @@index([approvalTypeId])
+}
+
+// ─────────────────── Phase 3: checklists & notifications ───────
+
+/// A persisted, personalised approval checklist (snapshot of a rule-engine run).
+model Checklist {
+  id           String   @id @default(uuid())
+  unitId       String?
+  createdById  String
+  name         String
+  /// Wizard answers (the EvaluationContext that produced this checklist).
+  context      Json
+  /// Snapshot of the engine result (applicable approvals etc.) for fast display.
+  result       Json     @default("{}")
+  riskCategory String?
+  status       String   @default("ACTIVE") // ACTIVE | COMPLETED | ARCHIVED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  creator User            @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  unit    Unit?           @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  items   ChecklistItem[]
+
+  @@index([createdById])
+}
+
+/// One required approval inside a checklist, with its document snapshot.
+model ChecklistItem {
+  id              String   @id @default(uuid())
+  checklistId     String
+  approvalTypeId  String
+  status          String   @default("PENDING") // PENDING | APPLIED | APPROVED | SKIPPED | NOTED
+  /// Snapshot of required document codes gathered from the seed rules.
+  requiredDocuments Json   @default("[]")
+  position        Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  checklist    Checklist    @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  approvalType ApprovalType @relation(fields: [approvalTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([checklistId, approvalTypeId])
+  @@index([approvalTypeId])
+}
+
+/// In-app notification (checklist ready, application updates, renewals, …).
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // CHECKLIST_READY | APPLICATION | QUERY | INSPECTION | RENEWAL | GRIEVANCE | SYSTEM
+  title     String
+  message   String
+  data      Json?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
 }

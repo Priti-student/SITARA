@@ -5,6 +5,11 @@ import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { RulesPage } from "./pages/RulesPage";
+import { CreateChecklistPage } from "./pages/CreateChecklistPage";
+import { ChecklistsPage } from "./pages/ChecklistsPage";
+import { ChecklistDetailPage } from "./pages/ChecklistDetailPage";
+import { NotificationsPage } from "./pages/NotificationsPage";
 
 function ProtectedRoute({ element }: { element: ReactNode }): ReactNode {
   const { user, loading } = useAuth();
@@ -12,6 +17,16 @@ function ProtectedRoute({ element }: { element: ReactNode }): ReactNode {
     return <div className="app-loading">Loading SITARA…</div>;
   }
   return user ? element : <Navigate to="/login" replace />;
+}
+
+function AdminRoute({ element }: { element: ReactNode }): ReactNode {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <div className="app-loading">Loading SITARA…</div>;
+  }
+  if (!user) return <Navigate to="/login" replace />;
+  const admin = user.roles.some((r) => r === "SUPER_ADMIN" || r === "STATE_ADMIN");
+  return admin ? element : <Navigate to="/dashboard" replace />;
 }
 
 export function App() {
@@ -25,6 +40,26 @@ export function App() {
           <Route
             path="/dashboard"
             element={<ProtectedRoute element={<DashboardPage />} />}
+          />
+          <Route
+            path="/rules"
+            element={<AdminRoute element={<RulesPage />} />}
+          />
+          <Route
+            path="/checklists/new"
+            element={<ProtectedRoute element={<CreateChecklistPage />} />}
+          />
+          <Route
+            path="/checklists/:id"
+            element={<ProtectedRoute element={<ChecklistDetailPage />} />}
+          />
+          <Route
+            path="/checklists"
+            element={<ProtectedRoute element={<ChecklistsPage />} />}
+          />
+          <Route
+            path="/notifications"
+            element={<ProtectedRoute element={<NotificationsPage />} />}
           />
           <Route
             path="*"

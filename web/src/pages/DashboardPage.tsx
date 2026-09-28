@@ -2,17 +2,19 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const MODULES = [
-  { title: "Approval Checklists", desc: "Regulatory knowledge engine (Phase 3)", soon: "Phase 3" },
+  { title: "Approval Checklists", desc: "Discovery wizard + personalised checklist — live", soon: "Live", href: "/checklists" },
+  { title: "New Checklist Wizard", desc: "5-step discovery → engine evaluation → save", soon: "Live", href: "/checklists/new" },
+  { title: "Notifications", desc: "In-app alerts on checklist & workflow events", soon: "Live", href: "/notifications" },
   { title: "Applications", desc: "Guided forms & pre-validation (Phase 4)", soon: "Phase 4" },
   { title: "Department Workflows", desc: "Parallel scrutiny, SLAs & queries (Phase 5)", soon: "Phase 5" },
   { title: "Inspections", desc: "Joint planning & risk-based scrutiny (Phase 6)", soon: "Phase 6" },
-  { title: "Renewals & Compliance", desc: "Alerts, renewals, condition tracking (Phase 7)", soon: "Phase 7" },
-  { title: "Incentives & Schemes", desc: "Eligibility matching & utilisation (Phase 8)", soon: "Phase 8" },
 ];
 
 export function DashboardPage() {
   const { user, signOut } = useAuth();
   if (!user) return null;
+
+  const isAdmin = user.roles.some((r) => r === "SUPER_ADMIN" || r === "STATE_ADMIN");
 
   return (
     <div className="dashboard">
@@ -21,6 +23,11 @@ export function DashboardPage() {
         <nav className="topbar-nav">
           <span className="chip chip-user">{user.roles.join(", ")}</span>
           <span className="chip chip-accent">{user.email}</span>
+          {isAdmin ? (
+            <Link to="/rules" className="btn btn-ghost btn-sm">
+              Rule Engine
+            </Link>
+          ) : null}
           <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>
             Sign out
           </Link>
@@ -46,6 +53,7 @@ export function DashboardPage() {
                 <span className="badge">{m.soon}</span>
               </div>
               <p>{m.desc}</p>
+              {m.href ? <Link to={m.href} className="btn btn-ghost btn-sm">Open</Link> : null}
             </div>
           ))}
         </section>

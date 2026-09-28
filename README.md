@@ -9,8 +9,8 @@ workflows, schedules inspections, tracks service-level timelines, issues
 renewal alerts, and provides one dashboard for applications, approvals,
 renewals and incentives.
 
-> Status: **Phase 1 complete** — Foundations (auth, roles, units, health check,
-> web scaffold). See [Roadmap](#roadmap) for the phases ahead.
+> Status: **Phase 3 complete** — Discovery wizard → personalised approval checklist.
+> Phases 1–2 (auth/RBAC, Regulatory Knowledge Engine) also done. See [Roadmap](#roadmap).
 
 ---
 
@@ -94,6 +94,18 @@ npx tsc --noEmit && npm run build   # web typecheck + production build
 | `POST` | `/api/v1/auth/refresh`    | Rotate refresh token |
 | `POST` | `/api/v1/auth/logout`     | Revoke refresh token |
 | `GET`  | `/api/v1/auth/me`         | Current user profile (auth required) |
+| `GET`  | `/api/v1/rules`            | Rule catalogue (filters: ruleType, authority, q) |
+| `GET`  | `/api/v1/rules/:id`        | Rule detail with linked approval/authority |
+| `POST` | `/api/v1/rules/evaluate`   | Run the knowledge engine on a unit/profile context |
+| `GET`  | `/api/v1/rules/approval-types` | Approval-type master catalogue with requirements |
+| `POST` | `/api/v1/units`             | Register an industrial unit (caller becomes OWNER) |
+| `GET`  | `/api/v1/units` / `/:id`    | My units / unit detail |
+| `POST` | `/api/v1/checklists/preview` | Run engine without persisting |
+| `POST` | `/api/v1/checklists`        | Persist a checklist (items + risk) and notify |
+| `GET`  | `/api/v1/checklists` / `/:id` | My checklists / detail (labelled documents, stage-grouped) |
+| `PATCH`| `/api/v1/checklists/:id/items/:itemId` | Update item status (PENDING/APPLIED/…) |
+| `GET`  | `/api/v1/notifications`    | In-app notifications + unread count |
+| `POST` | `/api/v1/notifications/:id/read` · `/read-all` | Mark notifications read |
 
 All responses use a uniform envelope:
 `{ "success": true, "data": ... }` / `{ "success": false, "error": { "code", "message", "details?" } }`.
@@ -157,6 +169,40 @@ ADMIN (.env)           admin@sitara.gov.in             OK     200    ✓ ALLOWED
 > re-run `npm run db:seed` — the seed now **refreshes** those credentials on
 > every run. All demo/seed passwords come from `.env`, never from code.
 
+## Regulatory Knowledge Engine (Phase 2)
+
+The `regulatory_rules.json` seed is imported into `RegulatoryRule` rows on every
+`npm run db:seed`, alongside the master catalogue (departments, authorities,
+approval types, document types, requirements).
+
+Engine behaviour (`server/src/rules/`):
+
+- **Conditions** are JSON: boolean flags, numeric suffixes (`_gte`, `_lt`…),
+  array membership/intersection, and `anyOf`/`allOf` combinators.
+- **Evaluator** (`evaluator.ts`) is pure and deterministic — fed a
+  unit/profile context it returns applicable approvals (with merged documents,
+  stage, department), a risk classification (RED/AMBER/GREEN), workflow hints,
+  and the list of fired rule IDs.
+- **Engine service** (`engine.ts`) loads active rules from PostgreSQL and
+  evaluates the same pure core.
+
+Example — a pharmaceuticals factory in Pune with pollution-relevant activity is
+classified **RED** and gets: Environmental Clearance, MPCB Consent to Establish,
+Consent to Operate (+ its 60-day renewal alert), Fire Provisional NOC, and ESI
+registration, each with its document checklist.
+
+The admin rule viewer lives at **/rules** (SUPER_ADMIN / STATE_ADMIN).
+
+## Discovery wizard → checklist (Phase 3)
+
+A 5-step wizard (`/checklists/new`) collects location → industry → size → stage →
+activity flags, and calls the engine live (`POST /checklists/preview`) before
+persisting. A saved checklist (`Checklist` + `ChecklistItem` rows) carries a
+snapshot of the result, risk category, approvals grouped by stage (pre-establishment
+→ post-operation) and each required document — with an in-app notification
+(`CHECKLIST_READY`). Applicants track item status (PENDING/APPLIED/APPROVED/
+SKIPPED/NOTED) from `/checklists/:id`; `/notifications` lists alerts.
+
 ## Security notes
 
 - **No secrets in code or config.** Passwords, DB credentials and JWT secrets
@@ -169,8 +215,8 @@ ADMIN (.env)           admin@sitara.gov.in             OK     200    ✓ ALLOWED
 
 ## Roadmap
 
-- **P2** Master data + Regulatory Knowledge Engine (rule parser/evaluator)
-- **P3** Discovery wizard → personalised approval checklist
+- **P2** ✅ Master data + Regulatory Knowledge Engine (rule parser/evaluator)
+- **P3** ✅ Discovery wizard → personalised approval checklist (units, notifications)
 - **P4** Dynamic forms, document pre-validation, verified-data reuse
 - **P5** Parallel department workflows, SLAs, queries, audit trail
 - **P6** Risk-based scrutiny + joint inspection planning
