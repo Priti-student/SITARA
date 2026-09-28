@@ -11,6 +11,7 @@ import { rulesRouter } from "./routes/rules.routes.js";
 import { unitsRouter } from "./routes/units.routes.js";
 import { checklistsRouter } from "./routes/checklists.routes.js";
 import { notificationsRouter } from "./routes/notifications.routes.js";
+import { applicationsRouter } from "./routes/applications.routes.js";
 
 export function createApp(): express.Express {
   const app = express();
@@ -35,6 +36,7 @@ export function createApp(): express.Express {
   app.use("/api/v1/units", unitsRouter);
   app.use("/api/v1/checklists", checklistsRouter);
   app.use("/api/v1/notifications", notificationsRouter);
+  app.use("/api/v1/applications", applicationsRouter);
 
   // 404 + central error handling
   app.use(notFoundHandler);

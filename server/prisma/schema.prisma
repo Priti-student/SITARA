@@ -46,6 +46,7 @@ model User {
   memberships   UnitMember[]
   notifications Notification[]
   createdChecklists Checklist[]
+  applications  Application[]
 
   @@index([status])
 }
@@ -107,6 +108,8 @@ model Unit {
 
   members    UnitMember[]
   checklists Checklist[]
+  applications Application[]
+  unitDocuments  UnitDocument[]
 
   @@index([isVerified])
 }
@@ -158,6 +161,8 @@ model ApprovalType {
   description String?
   stage       String     @default("any") // pre_establishment | pre_operation | operation | post_operation | any
   validityDays Int?      // default validity for approvals (renewal engine uses this)
+  /// Guided-form field definitions rendered for the applicant.
+  formSchema  Json       @default("[]") // [{key,label,type,required,options?}]
 
   authorityId String
   departmentId String
@@ -168,6 +173,7 @@ model ApprovalType {
   requirements ApprovalRequirement[]
   rules        RegulatoryRule[]
   checklistItems ChecklistItem[]
+  applications  Application[]
 }
 
 /// Master list of documents an applicant may be required to attach.
@@ -179,6 +185,8 @@ model DocumentType {
   isMandatory Boolean @default(true)
 
   requirements ApprovalRequirement[]
+  applicationDocuments ApplicationDocument[]
+  unitDocuments         UnitDocument[]
 }
 
 /// Which document types an approval type needs (many-to-many join).
@@ -227,7 +235,79 @@ model RegulatoryRule {
   @@index([approvalTypeId])
 }
 
-// ─────────────────── Phase 3: checklists & notifications ───────
+// ─────────────────── Phase 4: applications & documents ────────
+
+/// An application for one approval type on behalf of a unit.
+model Application {
+  id               String   @id @default(uuid())
+  applicationNo    String   @unique
+  approvalTypeId   String
+  unitId           String
+  createdById      String
+  checklistItemId  String?
+  status           String   @default("DRAFT") // DRAFT |SUBMITTED|UNDER_SCRUTINY|QUERY|QUERY_RESPONDED|APPROVED|REJECTED|WITHDRAWN
+  /// Guided-form responses (keys from ApprovalType.formSchema).
+  formData         Json     @default("{}")
+  riskCategory     String?
+  submittedAt      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  approvalType  ApprovalType          @relation(fields: [approvalTypeId], references: [id])
+  unit          Unit                  @relation(fields: [unitId], references: [id])
+  creator       User                  @relation(fields: [createdById], references: [id])
+  checklistItem ChecklistItem?        @relation(fields: [checklistItemId], references: [id], onDelete: SetNull)
+  documents     ApplicationDocument[]
+
+  @@index([createdById])
+  @@index([status])
+  @@index([unitId])
+}
+
+/// One document submitted (or reused) for an application's required doc type.
+model ApplicationDocument {
+  id               String   @id @default(uuid())
+  applicationId    String
+  documentTypeId   String
+  sourceType       String   @default("UPLOAD") // UPLOAD | REUSED
+  unitDocumentId   String?
+  originalName     String
+  storedPath       String
+  mimeType         String
+  sizeBytes        Int
+  checksum         String   @default("")
+  status           String   @default("VALIDATED") // UPLOADED | VALIDATED | REJECTED
+  validationErrors Json     @default("[]")
+  createdAt        DateTime @default(now())
+
+  application  Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  documentType DocumentType @relation(fields: [documentTypeId], references: [id])
+  unitDocument UnitDocument? @relation(fields: [unitDocumentId], references: [id], onDelete: SetNull)
+
+  @@index([applicationId])
+}
+
+/// Unit-level verified data vault — reusable documents (one per doc type).
+model UnitDocument {
+  id             String    @id @default(uuid())
+  unitId         String
+  documentTypeId String
+  originalName   String
+  storedPath     String
+  mimeType       String
+  sizeBytes      Int
+  checksum       String    @default("")
+  isVerified     Boolean   @default(false)
+  verifiedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  unit             Unit                  @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  documentType     DocumentType          @relation(fields: [documentTypeId], references: [id])
+  applicationLinks ApplicationDocument[]
+
+  @@unique([unitId, documentTypeId])
+}
 
 /// A persisted, personalised approval checklist (snapshot of a rule-engine run).
 model Checklist {
@@ -265,6 +345,7 @@ model ChecklistItem {
 
   checklist    Checklist    @relation(fields: [checklistId], references: [id], onDelete: Cascade)
   approvalType ApprovalType @relation(fields: [approvalTypeId], references: [id], onDelete: Cascade)
+  applications Application[]
 
   @@unique([checklistId, approvalTypeId])
   @@index([approvalTypeId])

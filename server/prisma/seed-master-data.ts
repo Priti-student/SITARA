@@ -5,6 +5,15 @@
 // ───────────────────────────────────────────────────────────────
 import rulesFile from "../../regulatory_rules.json" with { type: "json" };
 import { prisma } from "../src/utils/prisma.js";
+import type { Prisma } from "@prisma/client";
+
+interface FormField {
+  key: string;
+  label: string;
+  type: string;
+  required: boolean;
+  options?: string[];
+}
 
 const DEPARTMENTS: { code: string; name: string; description: string }[] = [
   { code: "ENV", name: "Environment & Pollution Control", description: "Environmental clearances and consents (MoEFCC / MPCB)" },
@@ -75,6 +84,58 @@ const STAGE_PRIORITY: Record<string, number> = {
   post_operation: 40,
 };
 
+/// Guided-form field definitions per approval type code (Phase 4).
+const COMMON_FORM_FIELDS: FormField[] = [
+  { key: "registeredUnitName", label: "Registered unit name", type: "text", required: true },
+  { key: "registrationNo", label: "Registration / Udyam / CIN", type: "text", required: true },
+  { key: "industryType", label: "Industry type", type: "text", required: true },
+  { key: "address", label: "Unit address", type: "textarea", required: true },
+  { key: "authorizedSignatory", label: "Authorized signatory", type: "text", required: true },
+  { key: "signatoryPhone", label: "Signatory phone", type: "text", required: true },
+  { key: "signatoryEmail", label: "Signatory email", type: "text", required: true },
+];
+
+const PROJECT_FORM_FIELDS: FormField[] = [
+  { key: "capitalInvestment", label: "Capital investment (INR)", type: "number", required: true },
+  { key: "plannedEmployees", label: "Planned / current employees", type: "number", required: true },
+  { key: "manufacturingProcess", label: "Manufacturing process description", type: "textarea", required: true },
+  { key: "rawMaterials", label: "Raw materials", type: "text", required: false },
+  { key: "finishedProducts", label: "Finished products", type: "text", required: false },
+];
+
+const ENV_FORM_FIELDS: FormField[] = [
+  { key: "applicableSchedule", label: "Project schedule / category", type: "select", options: ["Schedule 1", "Schedule 2", "Schedule 3", "Not listed"], required: true },
+  { key: "clearanceScope", label: "Clearance scope", type: "select", options: ["Environmental", "Forest", "Wildlife", "CRZ"], required: true },
+];
+
+const FIRE_FORM_FIELDS: FormField[] = [
+  { key: "buildingFloors", label: "Number of floors", type: "number", required: true },
+  { key: "plotAreaSqft", label: "Plot area (sq ft)", type: "number", required: true },
+  { key: "occupancyType", label: "Occupancy type", type: "select", options: ["Industrial", "Storage", "Mixed"], required: true },
+];
+
+const ESI_FORM_FIELDS: FormField[] = [
+  { key: "esiCoveredEmployees", label: "Employees covered under ESI", type: "number", required: true },
+];
+
+function formSchemaFor(code: string): FormField[] {
+  switch (code) {
+    case "ENV_EC":
+      return [...COMMON_FORM_FIELDS, ...ENV_FORM_FIELDS];
+    case "MPCB_CTE":
+      return [...COMMON_FORM_FIELDS, ...PROJECT_FORM_FIELDS];
+    case "MPCB_CTO":
+    case "MPCB_CTO_REN":
+      return [...COMMON_FORM_FIELDS, ...PROJECT_FORM_FIELDS, { key: "consentType", label: "Consent type", type: "select", options: ["Consent to Establish", "Consent to Operate", "Renewal"], required: true }];
+    case "FIRE_NOC_PROV":
+    case "FIRE_NOC_FINAL":
+      return [...COMMON_FORM_FIELDS, ...FIRE_FORM_FIELDS];
+    case "ESI_REG":
+      return [...COMMON_FORM_FIELDS, ...ESI_FORM_FIELDS];
+    default:
+      return [];
+  }
+}
 /// Maps a rule's `approval` display name to its platform ApprovalType code.
 function approvalCodeFor(name: unknown): string | null {
   if (typeof name !== "string") return null;
@@ -129,8 +190,8 @@ export async function seedMasterData(): Promise<void> {
     if (!department || !authority) throw new Error(`Master data missing for approval ${at.name}`);
     await prisma.approvalType.upsert({
       where: { code: at.code },
-      update: { name: at.name, description: at.description, stage: at.stage, validityDays: at.validityDays, departmentId: department.id, authorityId: authority.id },
-      create: { code: at.code, name: at.name, description: at.description, stage: at.stage, validityDays: at.validityDays, departmentId: department.id, authorityId: authority.id },
+      update: { name: at.name, description: at.description, stage: at.stage, validityDays: at.validityDays, departmentId: department.id, authorityId: authority.id, formSchema: formSchemaFor(at.code) as unknown as Prisma.InputJsonValue },
+      create: { code: at.code, name: at.name, description: at.description, stage: at.stage, validityDays: at.validityDays, departmentId: department.id, authorityId: authority.id, formSchema: formSchemaFor(at.code) as unknown as Prisma.InputJsonValue },
     });
     approvalCount += 1;
   }

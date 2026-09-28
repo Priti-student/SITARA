@@ -9,8 +9,8 @@ workflows, schedules inspections, tracks service-level timelines, issues
 renewal alerts, and provides one dashboard for applications, approvals,
 renewals and incentives.
 
-> Status: **Phase 3 complete** — Discovery wizard → personalised approval checklist.
-> Phases 1–2 (auth/RBAC, Regulatory Knowledge Engine) also done. See [Roadmap](#roadmap).
+> Status: **Phase 4 complete** — Guided applications, document pre-validation & verified-data reuse.
+> Phases 1–3 (auth/RBAC, knowledge engine, checklist wizard) also done. See [Roadmap](#roadmap).
 
 ---
 
@@ -106,6 +106,14 @@ npx tsc --noEmit && npm run build   # web typecheck + production build
 | `PATCH`| `/api/v1/checklists/:id/items/:itemId` | Update item status (PENDING/APPLIED/…) |
 | `GET`  | `/api/v1/notifications`    | In-app notifications + unread count |
 | `POST` | `/api/v1/notifications/:id/read` · `/read-all` | Mark notifications read |
+| `POST` | `/api/v1/applications`     | Create a DRAFT application (unit + approval type) |
+| `GET`  | `/api/v1/applications` / `/:id` | My applications / detail (form schema + requirements) |
+| `PUT`  | `/api/v1/applications/:id/form` | Save guided-form responses (draft) |
+| `POST` | `/api/v1/applications/:id/documents` | Upload (multipart) with pre-validation + duplicate detection |
+| `POST` | `/api/v1/applications/:id/documents/reuse` | Reuse a unit-vault document |
+| `DELETE`| `/api/v1/applications/:id/documents/:docId` | Remove an attached document |
+| `POST` | `/api/v1/applications/:id/submit` | Gated submit (422 until form+docs complete) → SUBMITTED |
+| `GET`  | `/api/v1/units/:id/documents` | Unit verified-data vault |
 
 All responses use a uniform envelope:
 `{ "success": true, "data": ... }` / `{ "success": false, "error": { "code", "message", "details?" } }`.
@@ -217,7 +225,7 @@ SKIPPED/NOTED) from `/checklists/:id`; `/notifications` lists alerts.
 
 - **P2** ✅ Master data + Regulatory Knowledge Engine (rule parser/evaluator)
 - **P3** ✅ Discovery wizard → personalised approval checklist (units, notifications)
-- **P4** Dynamic forms, document pre-validation, verified-data reuse
+- **P4** ✅ Guided applications, document pre-validation & verified-data reuse
 - **P5** Parallel department workflows, SLAs, queries, audit trail
 - **P6** Risk-based scrutiny + joint inspection planning
 - **P7** Renewals & compliance monitoring
