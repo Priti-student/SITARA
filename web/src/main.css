@@ -1,0 +1,198 @@
+/* ────────────────────────────────────────────────────────────────
+   SITARA design system (Phase 1)
+   Plain, dependency-free CSS. Tailwind can be layered in later.
+   ──────────────────────────────────────────────────────────────── */
+
+:root {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --ink: #1c2333;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --primary: #0f4c81;
+  --primary-strong: #0a3a63;
+  --accent: #c95d0a;
+  --success: #0f7a3d;
+  --danger: #b3261e;
+  --radius: 12px;
+  --shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.55;
+}
+
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ─── Buttons ─────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: background 0.15s ease, transform 0.08s ease;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-strong); }
+.btn-ghost { background: transparent; color: var(--primary); border-color: var(--line); }
+.btn-ghost:hover { border-color: var(--primary); background: rgba(15, 76, 129, 0.06); }
+.btn-block { width: 100%; }
+.btn-sm { padding: 0.4rem 0.85rem; font-size: 0.85rem; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ─── Alerts & chips ──────────────────────────────────────────── */
+.alert {
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.9rem;
+}
+.alert-error { background: #fdeaea; color: var(--danger); border: 1px solid #f5c6c6; }
+.chip {
+  display: inline-block;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: rgba(15, 76, 129, 0.08);
+  color: var(--primary);
+}
+.chip-user { background: rgba(12, 92, 80, 0.12); color: #0c5c50; }
+.chip-accent { background: rgba(201, 93, 10, 0.1); color: var(--accent); }
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+/* ─── Forms ───────────────────────────────────────────────────── */
+.form-grid { max-width: 420px; margin: 0 auto; display: grid; gap: 1rem; }
+.field { display: grid; gap: 0.35rem; }
+.field span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+.input,
+.field input {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+input:focus { outline: 3px solid rgba(15, 76, 129, 0.18); border-color: var(--primary); }
+code { background: rgba(15, 76, 129, 0.08); padding: 0.1rem 0.4rem; border-radius: 6px; font-size: 0.85em; }
+
+/* ─── Auth screens ────────────────────────────────────────────── */
+.auth-wrap {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, #0f2c47 0%, #1c3a5a 35%, #eef2f8 100%);
+}
+.auth-card {
+  width: 440px;
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 2.2rem;
+}
+.brand-block { text-align: center; margin-bottom: 0.4rem; }
+.brand-name {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--primary);
+}
+.brand-tag { margin: 0.2rem 0 0; color: var(--muted); font-size: 0.85rem; }
+.auth-title { margin: 1.4rem 0 0.2rem; font-size: 1.3rem; }
+.auth-alt { text-align: center; margin-top: 1rem; font-size: 0.9rem; color: var(--muted); }
+.auth-hint { text-align: center; margin-top: 0.5rem; font-size: 0.78rem; color: var(--muted); }
+
+/* ─── Landing ─────────────────────────────────────────────────── */
+.home-page { min-height: 100vh; }
+.hero {
+  padding: 5rem 2rem;
+  background: linear-gradient(135deg, #0f2c47 0%, #14406b 45%, #1d5a94 100%);
+  color: #fff;
+  text-align: center;
+}
+.eyebrow {
+  color: #bcd3ea;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.hero h1 { font-size: 2.6rem; max-width: 760px; margin: 1rem auto; }
+.hero .accent { color: #ffd07a; }
+.hero-sub { font-size: 1.05rem; max-width: 720px; margin: 0.5rem auto; color: #dbe7f5; }
+.hero-actions { margin-top: 1.8rem; display: flex; gap: 1rem; justify-content: center; }
+.hero-actions .btn-ghost { border-color: rgba(255, 255, 255, 0.35); color: #fff; }
+.hero-actions .btn-ghost:hover { background: rgba(255, 255, 255, 0.1); }
+
+.features { max-width: 1060px; margin: 3rem auto; padding: 0 1.5rem; }
+.features h2 { font-size: 1.6rem; }
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.2rem;
+  margin-top: 1.2rem;
+}
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.3rem 1.2rem;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+}
+.feature-card h3 { margin: 0 0 0.5rem; font-size: 1.05rem; color: var(--primary); }
+.feature-card p { margin: 0.4rem 0 0; color: var(--muted); font-size: 0.92rem; }
+
+/* ─── Dashboard ───────────────────────────────────────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.5rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+}
+.topbar-brand { font-weight: 800; color: var(--primary); font-size: 1.15rem; }
+.topbar-nav { display: flex; gap: 0.75rem; align-items: center; margin-left: auto; }
+.dashboard main { max-width: 1060px; margin: 2rem auto; padding: 0 1.5rem; }
+.welcome h1 { font-size: 1.7rem; }
+.welcome p { color: var(--muted); }
+.module-card .module-title-row { display: flex; justify-content: space-between; align-items: center; }
+.dashboard-tip { margin-top: 2rem; font-size: 0.92rem; color: var(--muted); }
+
+/* ─── Misc ────────────────────────────────────────────────────── */
+.app-loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 1.1rem;
+}

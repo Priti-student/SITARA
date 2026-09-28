@@ -1,11 +1,18 @@
 # Logs and databases
 *.log
 *.sqlite
+*.db
+*.csv
 
 # Environments and Secrets (NEVER commit these)
 .env
 .env.local
 .env.*.local
+*.env
+
+# Keep environment templates (no secrets inside)
+!.env.example
+!server/.env.example
 
 # Dependency directories (Node, Python, etc.)
 node_modules/
@@ -21,3 +28,11 @@ build/
 .out/
 .vscode/
 .idea/
+*.tsbuildinfo
+
+# Test coverage & caches
+coverage/
+.vite/
+
+# Uploaded application documents (runtime artifacts)
+uploads/

@@ -1,0 +1,117 @@
+// SITARA — Prisma schema v1 (Phase 1: Auth, Roles, Users, Units)
+// Extends with master data, applications, workflows in later phases.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────── Enums ───────────────────────────
+
+enum RoleName {
+  SUPER_ADMIN
+  STATE_ADMIN
+  DEPARTMENT_USER
+  APPROVING_AUTHORITY
+  INSPECTOR
+  APPLICANT
+  UNIT_USER
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+// ─────────────────────────── Models ──────────────────────────
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  phone        String?    @unique
+  passwordHash String
+  fullName     String
+  designation  String?
+  status       UserStatus @default(ACTIVE)
+  isVerified   Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  roles         UserRole[]
+  refreshTokens RefreshToken[]
+  memberships   UnitMember[]
+
+  @@index([status])
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        RoleName @unique
+  description String?
+
+  users UserRole[]
+
+  createdAt DateTime @default(now())
+}
+
+model UserRole {
+  id     String @id @default(uuid())
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([roleId])
+}
+
+/// Refresh tokens are stored hashed (sha256). One row per live session.
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Industrial establishment / enterprise registered on the platform.
+/// Minimal in v1; extended with sector/location/size profiles in Phase 3.
+model Unit {
+  id             String   @id @default(uuid())
+  name           String
+  registrationNo String?  @unique
+  industryType   String?
+  sector         String?
+  state          String?
+  district       String?
+  address        String?
+  pincode        String?
+  isVerified     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  members UnitMember[]
+}
+
+model UnitMember {
+  id     String @id @default(uuid())
+  unitId String
+  userId String
+  role   String @default("OWNER") // OWNER | AUTHORIZED_SIGNATORY | CONTACT
+
+  unit Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([unitId, userId])
+  @@index([userId])
+}
