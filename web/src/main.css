@@ -318,3 +318,36 @@ code { background: rgba(15, 76, 129, 0.08); padding: 0.1rem 0.4rem; border-radiu
 .notif-card.unread { border-color: var(--primary); box-shadow: 0 1px 6px rgba(15, 76, 129, 0.12); }
 .notif-card h4 { margin: 0 0 0.3rem; }
 .notif-card p { margin: 0.3rem 0; }
+
+/* ─── Phase 4: applications & documents ──────────────────────── */
+textarea,
+select {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+textarea:focus,
+select:focus { outline: 3px solid rgba(15, 76, 129, 0.18); border-color: var(--primary); }
+
+.doc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.3rem;
+  font-size: 0.88rem;
+}
+.doc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: 0.35rem;
+}
+.doc-actions input[type="file"] { font-size: 0.85rem; }
+.approval-card .btn-sm { margin-top: 0.4rem; }

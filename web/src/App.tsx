@@ -10,6 +10,8 @@ import { CreateChecklistPage } from "./pages/CreateChecklistPage";
 import { ChecklistsPage } from "./pages/ChecklistsPage";
 import { ChecklistDetailPage } from "./pages/ChecklistDetailPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
+import { ApplicationsPage } from "./pages/ApplicationsPage";
+import { ApplicationDetailPage } from "./pages/ApplicationDetailPage";
 
 function ProtectedRoute({ element }: { element: ReactNode }): ReactNode {
   const { user, loading } = useAuth();
@@ -60,6 +62,18 @@ export function App() {
           <Route
             path="/notifications"
             element={<ProtectedRoute element={<NotificationsPage />} />}
+          />
+          <Route
+            path="/applications/new"
+            element={<ProtectedRoute element={<ApplicationsPage />} />}
+          />
+          <Route
+            path="/applications/:id"
+            element={<ProtectedRoute element={<ApplicationDetailPage />} />}
+          />
+          <Route
+            path="/applications"
+            element={<ProtectedRoute element={<ApplicationsPage />} />}
           />
           <Route
             path="*"

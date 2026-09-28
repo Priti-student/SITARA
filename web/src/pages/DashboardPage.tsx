@@ -5,7 +5,7 @@ const MODULES = [
   { title: "Approval Checklists", desc: "Discovery wizard + personalised checklist — live", soon: "Live", href: "/checklists" },
   { title: "New Checklist Wizard", desc: "5-step discovery → engine evaluation → save", soon: "Live", href: "/checklists/new" },
   { title: "Notifications", desc: "In-app alerts on checklist & workflow events", soon: "Live", href: "/notifications" },
-  { title: "Applications", desc: "Guided forms & pre-validation (Phase 4)", soon: "Phase 4" },
+  { title: "Applications", desc: "Guided forms & pre-validation — live", soon: "Live", href: "/applications" },
   { title: "Department Workflows", desc: "Parallel scrutiny, SLAs & queries (Phase 5)", soon: "Phase 5" },
   { title: "Inspections", desc: "Joint planning & risk-based scrutiny (Phase 6)", soon: "Phase 6" },
 ];

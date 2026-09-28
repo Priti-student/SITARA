@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   getChecklist,
   updateItemStatus,
   type ChecklistDetail,
 } from "../api/checklists";
+import { createApplication } from "../api/applications";
+import { errorMessage } from "../context/AuthContext";
 
 const STAGE_LABELS: Record<string, string> = {
   pre_establishment: "1 · Pre-establishment",
@@ -22,6 +24,7 @@ export function ChecklistDetailPage() {
   const { user, signOut } = useAuth();
   const params = useParams();
   const checklistId = String(params.id);
+  const navigate = useNavigate();
   const [cl, setCl] = useState<ChecklistDetail | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -39,6 +42,21 @@ export function ChecklistDetailPage() {
       load();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Update failed");
+    }
+  }
+
+  async function applyFor(item: { id: string; approvalType: { code: string } }) {
+    if (!cl?.unit) return;
+    setErr(null);
+    try {
+      const res = await createApplication({
+        unitId: cl.unit.id,
+        approvalTypeCode: item.approvalType.code,
+        checklistItemId: item.id,
+      });
+      navigate(`/applications/${res.application.id}`);
+    } catch (e) {
+      setErr(errorMessage(e));
     }
   }
 
@@ -115,6 +133,11 @@ export function ChecklistDetailPage() {
                       </button>
                     ))}
                   </div>
+                  {cl.unit ? (
+                    <button className="btn btn-primary btn-sm" onClick={() => applyFor(item)} disabled={item.status === "APPROVED"}>
+                      Start application
+                    </button>
+                  ) : null}
                 </div>
               ))}
             </div>

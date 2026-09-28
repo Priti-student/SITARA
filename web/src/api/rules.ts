@@ -60,6 +60,12 @@ export function listRules(query: { ruleType?: string; q?: string } = {}): Promis
   return api<RuleListData>(`/rules${qs ? `?${qs}` : ""}`);
 }
 
+export function listApprovalTypes(): Promise<{
+  items: { code: string; name: string; stage: string; description: string | null }[];
+}> {
+  return api("/rules/approval-types");
+}
+
 export function evaluateRules(context: Record<string, unknown>): Promise<EvaluationResultData> {
   return api<EvaluationResultData>("/rules/evaluate", { method: "POST", body: { context } });
 }
