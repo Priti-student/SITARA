@@ -17,6 +17,8 @@ const envSchema = z.object({
   // Bootstrap super admin (optional; consumed only by `prisma db seed`)
   ADMIN_EMAIL: z.string().email().optional(),
   ADMIN_PASSWORD: z.string().min(8).optional(),
+  // Shared password for demo role-verification users (`npm run db:seed:demo`)
+  DEMO_USER_PASSWORD: z.string().min(8).optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

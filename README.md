@@ -103,6 +103,60 @@ All responses use a uniform envelope:
 `SUPER_ADMIN` · `STATE_ADMIN` · `DEPARTMENT_USER` · `APPROVING_AUTHORITY` ·
 `INSPECTOR` · `APPLICANT` · `UNIT_USER`
 
+## Verifying roles work (3 layers)
+
+**1. Data layer — roles exist in the DB**
+
+```bash
+cd server
+npx prisma studio      # open http://localhost:5555, inspect Role (7 rows) and UserRole
+```
+
+**2. Auth layer — a user carries the right role**
+
+```bash
+cd server
+npm run db:seed:demo   # creates one user per role; passwords = DEMO_USER_PASSWORD (.env)
+```
+
+Then sign in (e.g. `demo-superadmin@sitara.test`) and call
+`GET /api/v1/auth/me` — the response contains `"roles": ["..." ]`.
+
+**3. Authorization layer — RBAC is enforced**
+
+`GET /api/v1/admin/ping` is guarded by `requireRoles("SUPER_ADMIN")`:
+
+| Who | Expect |
+|---|---|
+| No token | **401** `UNAUTHENTICATED` |
+| `demo-applicant@sitara.test` (valid token) | **403** `FORBIDDEN` |
+| `admin@sitara.gov.in` / `demo-superadmin@sitara.test` | **200** with your roles echoed |
+
+The same matrix is covered automatically by `tests/rbac.test.ts` (run `npm test`).
+
+**One-command verification** — logs in as every demo role + the bootstrap admin
+and probes the guarded route:
+
+```bash
+cd server
+npm run roles:check        # DATA (role rows) · AUTH (/me claims) · RBAC (/admin/ping)
+```
+
+Expected output (abridged):
+
+```
+WHO                    EMAIL                           AUTH   PING   VERDICT
+SUPER_ADMIN            demo-super-admin@sitara.test    OK     200    ✓ ALLOWED
+DEPARTMENT_USER        demo-department-user@sitara.test OK    403    ✓ DENIED (expected for this role)
+APPLICANT              demo-applicant@sitara.test      OK     403    ✓ DENIED (expected for this role)
+ADMIN (.env)           admin@sitara.gov.in             OK     200    ✓ ALLOWED
+<no token>             —                               n/a    401    ✓ DENIED (401, expected)
+```
+
+> Want your own admin? Edit `ADMIN_EMAIL`/`ADMIN_PASSWORD` in `server/.env` and
+> re-run `npm run db:seed` — the seed now **refreshes** those credentials on
+> every run. All demo/seed passwords come from `.env`, never from code.
+
 ## Security notes
 
 - **No secrets in code or config.** Passwords, DB credentials and JWT secrets

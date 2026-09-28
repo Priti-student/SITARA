@@ -28,9 +28,11 @@ async function main(): Promise<void> {
   const adminEmail = env.ADMIN_EMAIL;
   const adminPassword = env.ADMIN_PASSWORD;
   if (adminEmail && adminPassword) {
+    const passwordHash = await hashPassword(adminPassword);
     const existing = await prisma.user.findUnique({ where: { email: adminEmail.toLowerCase() } });
-    if (!existing) {
-      const passwordHash = await hashPassword(adminPassword);
+    const adminRole = await prisma.role.findUnique({ where: { name: "SUPER_ADMIN" } });
+
+    if (!existing && adminRole) {
       await prisma.user.create({
         data: {
           fullName: "SITARA Platform Admin",
@@ -44,8 +46,17 @@ async function main(): Promise<void> {
         },
       });
       console.log(`✓ Bootstrap super admin created: ${adminEmail}`);
-    } else {
-      console.log(`- Super admin already exists (${adminEmail}); skipping`);
+    } else if (existing && adminRole) {
+      // .env may have changed — refresh the password hash and ensure the role
+      await prisma.user.update({
+        where: { id: existing.id },
+        data: { passwordHash, isVerified: true },
+      });
+      await prisma.userRole.createMany({
+        data: [{ userId: existing.id, roleId: adminRole.id }],
+        skipDuplicates: true,
+      });
+      console.log(`✓ Super admin credentials refreshed from .env: ${adminEmail}`);
     }
   } else {
     console.log("! ADMIN_EMAIL / ADMIN_PASSWORD not set — skipping bootstrap admin.");

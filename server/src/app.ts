@@ -6,6 +6,7 @@ import { corsOriginList, env } from "./config/env.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { authRouter } from "./routes/auth.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
+import { adminRouter } from "./routes/admin.routes.js";
 
 export function createApp(): express.Express {
   const app = express();
@@ -25,6 +26,7 @@ export function createApp(): express.Express {
   // API routes v1
   app.use("/api/v1/health", healthRouter);
   app.use("/api/v1/auth", authRouter);
+  app.use("/api/v1/admin", adminRouter);
 
   // 404 + central error handling
   app.use(notFoundHandler);
