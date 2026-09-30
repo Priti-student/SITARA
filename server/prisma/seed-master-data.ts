@@ -19,6 +19,7 @@ const DEPARTMENTS: { code: string; name: string; description: string }[] = [
   { code: "ENV", name: "Environment & Pollution Control", description: "Environmental clearances and consents (MoEFCC / MPCB)" },
   { code: "FIRE", name: "Fire & Emergency Services", description: "Fire NOC, life-safety and building approvals" },
   { code: "LABOUR", name: "Labour & Employment", description: "Employer registrations, ESI, labour compliance" },
+  { code: "INDUSTRY", name: "Industries & Single-Window", description: "UDYAM verification, industrial registration and single-window coordination" },
 ];
 
 const AUTHORITIES: { name: string; jurisdiction: string; level: string; website: string }[] = [
@@ -151,6 +152,71 @@ function authorityNameFor(code: string): string {
   return AUTHORITIES[0].name;
 }
 
+/// Workflow route per approval type (Phase 5): dept tracks with ordered steps.
+function defaultWorkflowFor(code: string): object[] {
+  switch (code) {
+    case "MPCB_CTE":
+      return [
+        {
+          dept: "ENV",
+          steps: [
+            { order: 10, role: "DEPARTMENT_USER", slaHours: 48, label: "Scrutiny & completeness" },
+            { order: 20, role: "APPROVING_AUTHORITY", slaHours: 24, label: "Final consent" },
+          ],
+        },
+        {
+          dept: "INDUSTRY",
+          steps: [
+            { order: 10, role: "DEPARTMENT_USER", slaHours: 72, label: "UDYAM & registration verification" },
+          ],
+        },
+      ];
+    case "ENV_EC":
+      return [
+        {
+          dept: "ENV",
+          steps: [
+            { order: 10, role: "DEPARTMENT_USER", slaHours: 72, label: "EIA scrutiny" },
+            { order: 20, role: "APPROVING_AUTHORITY", slaHours: 24, label: "Final clearance" },
+          ],
+        },
+      ];
+    case "MPCB_CTO":
+    case "MPCB_CTO_REN":
+      return [
+        {
+          dept: "ENV",
+          steps: [
+            { order: 10, role: "DEPARTMENT_USER", slaHours: 48, label: "Compliance scrutiny" },
+            { order: 20, role: "APPROVING_AUTHORITY", slaHours: 24, label: "Final consent" },
+          ],
+        },
+      ];
+    case "FIRE_NOC_PROV":
+    case "FIRE_NOC_FINAL":
+      return [
+        {
+          dept: "FIRE",
+          steps: [
+            { order: 10, role: "DEPARTMENT_USER", slaHours: 72, label: "Fire safety scrutiny" },
+            { order: 20, role: "APPROVING_AUTHORITY", slaHours: 24, label: "Final NOC" },
+          ],
+        },
+      ];
+    case "ESI_REG":
+      return [
+        {
+          dept: "LABOUR",
+          steps: [
+            { order: 10, role: "DEPARTMENT_USER", slaHours: 48, label: "Registration check" },
+          ],
+        },
+      ];
+    default:
+      return [];
+  }
+}
+
 export async function seedMasterData(): Promise<void> {
   // 1) Departments
   for (const d of DEPARTMENTS) {
@@ -190,8 +256,8 @@ export async function seedMasterData(): Promise<void> {
     if (!department || !authority) throw new Error(`Master data missing for approval ${at.name}`);
     await prisma.approvalType.upsert({
       where: { code: at.code },
-      update: { name: at.name, description: at.description, stage: at.stage, validityDays: at.validityDays, departmentId: department.id, authorityId: authority.id, formSchema: formSchemaFor(at.code) as unknown as Prisma.InputJsonValue },
-      create: { code: at.code, name: at.name, description: at.description, stage: at.stage, validityDays: at.validityDays, departmentId: department.id, authorityId: authority.id, formSchema: formSchemaFor(at.code) as unknown as Prisma.InputJsonValue },
+      update: { name: at.name, description: at.description, stage: at.stage, validityDays: at.validityDays, departmentId: department.id, authorityId: authority.id, formSchema: formSchemaFor(at.code) as unknown as Prisma.InputJsonValue, workflow: defaultWorkflowFor(at.code) as unknown as Prisma.InputJsonValue },
+      create: { code: at.code, name: at.name, description: at.description, stage: at.stage, validityDays: at.validityDays, departmentId: department.id, authorityId: authority.id, formSchema: formSchemaFor(at.code) as unknown as Prisma.InputJsonValue, workflow: defaultWorkflowFor(at.code) as unknown as Prisma.InputJsonValue },
     });
     approvalCount += 1;
   }

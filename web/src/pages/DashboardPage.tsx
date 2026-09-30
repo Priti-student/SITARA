@@ -6,8 +6,14 @@ const MODULES = [
   { title: "New Checklist Wizard", desc: "5-step discovery → engine evaluation → save", soon: "Live", href: "/checklists/new" },
   { title: "Notifications", desc: "In-app alerts on checklist & workflow events", soon: "Live", href: "/notifications" },
   { title: "Applications", desc: "Guided forms & pre-validation — live", soon: "Live", href: "/applications" },
-  { title: "Department Workflows", desc: "Parallel scrutiny, SLAs & queries (Phase 5)", soon: "Phase 5" },
-  { title: "Inspections", desc: "Joint planning & risk-based scrutiny (Phase 6)", soon: "Phase 6" },
+  { title: "Department Workflows", desc: "Parallel tracks, officer inbox, SLAs & queries — live", soon: "Live", href: "/department" },
+  { title: "Inspections", desc: "Joint planning & risk-based scrutiny — live", soon: "Live", href: "/inspections" },
+  { title: "Renewals", desc: "Expiry countdowns, pre-expiry alerts & renewal applications — live", soon: "Live", href: "/renewals" },
+  { title: "Compliance Monitoring", desc: "Remediation cases from inspection verdicts — live", soon: "Live", href: "/compliance" },
+  { title: "Incentive Schemes", desc: "Government incentives with live eligibility checks — live", soon: "Live", href: "/schemes" },
+  { title: "Claims & Utilisation", desc: "Sanction → disbursement → utilisation with full audit trail — live", soon: "Live", href: "/claims" },
+  { title: "Analytics & Alerts", desc: "KPI overview, 6-month trend, workload & consolidated alert feed — live", soon: "Live", href: "/analytics" },
+  { title: "Grievances", desc: "SLA-tracked filings with acknowledgement, response & auto-escalation — live", soon: "Live", href: "/grievances" },
 ];
 
 export function DashboardPage() {

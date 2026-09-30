@@ -1,4 +1,7 @@
 import { api } from "./client";
+import type { ApprovalRecord, TimelineEvent, WorkflowTrack } from "./department";
+import type { AppInspection } from "./department";
+import type { RiskAssessment } from "./inspections";
 
 export interface ApplicationSummary {
   id: string;
@@ -54,6 +57,11 @@ export interface ApplicationDetail {
   unit: { id: string; name: string; registrationNo: string | null } | null;
   documents: ApplicationDoc[];
   checklistItem: { id: string; status: string } | null;
+  workflowInstances: WorkflowTrack[];
+  events: TimelineEvent[];
+  approvals: ApprovalRecord[];
+  riskAssessment: RiskAssessment | null;
+  inspections: AppInspection[];
 }
 
 export interface UnitDocumentVault {
@@ -131,4 +139,11 @@ export async function uploadApplicationDocument(
     throw e;
   }
   return body;
+}
+
+export function respondToQuery(id: string, response: string): Promise<{ status: string }> {
+  return api(`/applications/${id}/query-response`, {
+    method: "POST",
+    body: { response },
+  });
 }

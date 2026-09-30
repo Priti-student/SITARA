@@ -9,6 +9,7 @@ import {
   reuseVaultDocument,
   deleteApplicationDocument,
   listUnitDocuments,
+  respondToQuery,
   type ApplicationDetail,
   type ApplicationDoc,
   type UnitDocumentVault,
@@ -24,6 +25,7 @@ export function ApplicationDetailPage() {
   const [vault, setVault] = useState<UnitDocumentVault[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [queryReply, setQueryReply] = useState("");
 
   function load() {
     getApplication(id)
@@ -103,6 +105,20 @@ export function ApplicationDetailPage() {
       } else {
         setErr(e instanceof Error ? e.message : "Submit failed");
       }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function sendQueryResponse() {
+    setBusy(true);
+    setErr(null);
+    try {
+      await respondToQuery(id, queryReply.trim());
+      setQueryReply("");
+      load();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Response failed");
     } finally {
       setBusy(false);
     }
@@ -227,6 +243,138 @@ export function ApplicationDetailPage() {
             <button className="btn btn-primary btn-block" onClick={submit} disabled={busy}>
               {busy ? "Working…" : "Submit application"}
             </button>
+          </section>
+        ) : null}
+
+        {app.workflowInstances.length > 0 ? (
+          <section className="wizard">
+            <h3 className="stage-title">Department review status</h3>
+            <table className="table rules-table">
+              <thead>
+                <tr>
+                  <th>Department</th>
+                  <th>Current step</th>
+                  <th>Track status</th>
+                  <th>SLA by</th>
+                </tr>
+              </thead>
+              <tbody>
+                {app.workflowInstances.map((t) => (
+                  <tr key={t.id}>
+                    <td>{t.department.name}</td>
+                    <td>{t.currentStepLabel ?? "—"}</td>
+                    <td>
+                      <span className={`chip chip-status-${t.status.toLowerCase()}`}>{t.status}</span>
+                    </td>
+                    <td>{t.slaDueAt ? new Date(t.slaDueAt).toLocaleDateString() : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {app.approvals.length > 0 ? (
+              <p>
+                <span className="chip chip-status-approved">
+                  Approval {app.approvals[0].approvalNo}
+                  {app.approvals[0].issuedAt
+                    ? ` · issued ${new Date(app.approvals[0].issuedAt).toLocaleDateString()}`
+                    : ""}
+                </span>
+              </p>
+            ) : null}
+          </section>
+        ) : null}
+
+        {app.inspections.length > 0 || app.riskAssessment ? (
+          <section className="wizard">
+            <h3 className="stage-title">Site inspections &amp; scrutiny</h3>
+            {app.riskAssessment ? (
+              <p>
+                <span className={`chip chip-risk-${app.riskAssessment.category.toLowerCase()}`}>
+                  {app.riskAssessment.category} risk
+                </span>{" "}
+                <span className="hint">
+                  score {app.riskAssessment.score}/100 · {app.riskAssessment.scrutinyLevel} scrutiny
+                </span>
+              </p>
+            ) : null}
+            {app.inspections.length === 0 ? (
+              <p className="hint">No site visits planned — departments will schedule one if scrutiny requires it.</p>
+            ) : (
+              app.inspections.map((ins) => (
+                <div className="doc-row" key={ins.id}>
+                  <span>
+                    <strong>{ins.title}</strong>
+                    <br />
+                    <span className="hint">
+                      {new Date(ins.scheduledAt).toLocaleString()}
+                      {ins.venue ? ` · ${ins.venue}` : ""}
+                      {ins.complianceStatus ? ` · verdict: ${ins.complianceStatus}` : ""}
+                    </span>
+                    <br />
+                    <span className="hint">
+                      Departments: {ins.participants.map((p) => p.department.code).join(", ")}
+                      {ins.participants.some((p) => p.inspector)
+                        ? ` · inspectors: ${ins.participants.filter((p) => p.inspector).map((p) => p.inspector!.fullName).join(", ")}`
+                        : ""}
+                    </span>
+                  </span>
+                  <span
+                    className={`chip ${
+                      ins.status === "COMPLETED"
+                        ? "chip-status-approved"
+                        : ins.status === "CANCELLED"
+                          ? "chip-status-rejected"
+                          : "chip-status-under_scrutiny"
+                    }`}
+                  >
+                    {ins.status.replace("_", " ")}
+                  </span>
+                </div>
+              ))
+            )}
+          </section>
+        ) : null}
+
+        {app.status === "QUERY" ? (
+          <section className="wizard">
+            <h3 className="stage-title">Respond to department query</h3>
+            <p className="hint">
+              {(() => {
+                const q = [...app.events].reverse().find((e) => e.eventType === "QUERY_RAISED");
+                return q?.comment ? `“${q.comment}”` : "A department has raised a query on this application.";
+              })()}
+            </p>
+            <div className="track-actions">
+              <textarea
+                placeholder="Your response…"
+                value={queryReply}
+                onChange={(e) => setQueryReply(e.target.value)}
+              />
+              <button
+                className="btn btn-primary btn-block"
+                onClick={sendQueryResponse}
+                disabled={busy || queryReply.trim().length === 0}
+              >
+                {busy ? "Sending…" : "Send response"}
+              </button>
+            </div>
+          </section>
+        ) : null}
+
+        {app.events.length > 0 ? (
+          <section className="wizard">
+            <h3 className="stage-title">Activity timeline</h3>
+            <ul className="timeline">
+              {app.events.map((ev) => (
+                <li key={ev.id}>
+                  <div className="tl-meta">
+                    <strong>{ev.eventType}</strong> · {new Date(ev.createdAt).toLocaleString()}
+                    {ev.toStatus ? <> → {ev.toStatus}</> : null}
+                  </div>
+                  {ev.comment ? <p className="tl-comment">{ev.comment}</p> : null}
+                </li>
+              ))}
+            </ul>
           </section>
         ) : null}
       </main>

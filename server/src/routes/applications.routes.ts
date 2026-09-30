@@ -15,3 +15,4 @@ applicationsRouter.post("/:id/documents", uploadMiddleware.single("file"), ctrl.
 applicationsRouter.post("/:id/documents/reuse", ctrl.reuseDocument);
 applicationsRouter.delete("/:id/documents/:docId", ctrl.deleteDocument);
 applicationsRouter.post("/:id/submit", ctrl.submit);
+applicationsRouter.post("/:id/query-response", ctrl.respondQuery);

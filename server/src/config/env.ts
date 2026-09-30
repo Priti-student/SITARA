@@ -19,6 +19,10 @@ const envSchema = z.object({
   ADMIN_PASSWORD: z.string().min(8).optional(),
   // Shared password for demo role-verification users (`npm run db:seed:demo`)
   DEMO_USER_PASSWORD: z.string().min(8).optional(),
+  // Phase 10 — per-IP API rate limiting (global budget + stricter auth budget)
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+  RATE_LIMIT_MAX: z.coerce.number().int().positive().default(300),
+  AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(30),
 });
 
 const parsed = envSchema.safeParse(process.env);

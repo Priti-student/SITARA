@@ -157,7 +157,8 @@ describe("Phase 4 — applications, forms, documents", () => {
       .post(`/api/v1/applications/${applicationId}/submit`)
       .set("Authorization", `Bearer ${token}`);
     expect(submit.status).toBe(200);
-    expect(submit.body.data.application.status).toBe("SUBMITTED");
+    // Phase 5: submit synchronously activates the workflow → UNDER_SCRUTINY
+    expect(submit.body.data.application.status).toBe("UNDER_SCRUTINY");
     expect(submit.body.data.application.submittedAt).toBeDefined();
   });
 

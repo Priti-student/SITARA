@@ -38,6 +38,7 @@ model User {
   designation  String?
   status       UserStatus @default(ACTIVE)
   isVerified   Boolean    @default(false)
+  departmentId String?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -47,6 +48,10 @@ model User {
   notifications Notification[]
   createdChecklists Checklist[]
   applications  Application[]
+  inspectionParticipants InspectionParticipant[]
+  grievancesCreated   Grievance[] @relation("GrievanceCreator")
+  grievancesAssigned  Grievance[] @relation("GrievanceAssignee")
+  department    Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
   @@index([status])
 }
@@ -110,6 +115,11 @@ model Unit {
   checklists Checklist[]
   applications Application[]
   unitDocuments  UnitDocument[]
+  approvals      Approval[]
+  inspections    Inspection[]
+  complianceCases ComplianceCase[]
+  incentiveClaims IncentiveClaim[]
+  grievances  Grievance[]
 
   @@index([isVerified])
 }
@@ -138,6 +148,9 @@ model Department {
 
   approvalTypes ApprovalType[]
   rules         RegulatoryRule[]
+  users         User[]
+  workflowInstances WorkflowInstance[]
+  inspectionParticipants InspectionParticipant[]
 }
 
 /// Issuing / regulating authority (e.g. MoEFCC, MPCB, Fire Services, ESIC).
@@ -163,6 +176,8 @@ model ApprovalType {
   validityDays Int?      // default validity for approvals (renewal engine uses this)
   /// Guided-form field definitions rendered for the applicant.
   formSchema  Json       @default("[]") // [{key,label,type,required,options?}]
+  /// Workflow route: array of department tracks with ordered steps.
+  workflow    Json       @default("[]") // [{dept, steps:[{order,role,slaHours,label}]}]
 
   authorityId String
   departmentId String
@@ -174,6 +189,8 @@ model ApprovalType {
   rules        RegulatoryRule[]
   checklistItems ChecklistItem[]
   applications  Application[]
+  workflowInstances WorkflowInstance[]
+  approvals     Approval[]
 }
 
 /// Master list of documents an applicant may be required to attach.
@@ -235,7 +252,83 @@ model RegulatoryRule {
   @@index([approvalTypeId])
 }
 
-// ─────────────────── Phase 4: applications & documents ────────
+// ─────────────────── Phase 5: workflow engine ─────────────────
+
+/// One department track of an application, advancing independently.
+model WorkflowInstance {
+  id               String   @id @default(uuid())
+  applicationId    String
+  approvalTypeId   String?
+  departmentId     String
+  status           String   @default("ACTIVE") // ACTIVE | QUERY_WAITING | COMPLETED | REJECTED | ESCALATED_CLOSED
+  /// Step label currently being worked (from ApprovalType.workflow route).
+  currentStepLabel String?
+  currentStepOrder Int?
+  slaDueAt         DateTime?
+  escalatedAt      DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  approvalType ApprovalType? @relation(fields: [approvalTypeId], references: [id], onDelete: SetNull)
+  department  Department  @relation(fields: [departmentId], references: [id])
+  events      WorkflowEvent[]
+
+  @@index([applicationId])
+  @@index([departmentId, status])
+}
+
+/// Append-only audit trail for every workflow transition.
+model WorkflowEvent {
+  id                 String   @id @default(uuid())
+  applicationId      String
+  workflowInstanceId String?
+  actorId            String   @default("system")
+  actorRole          String   @default("SYSTEM")
+  eventType          String // CREATED|REVIEWED|APPROVED|REJECTED|QUERY_RAISED|QUERY_RESPONDED|ESCALATED|AUTO_ESCALATED|SLA_BREACH|COMMENTED|SUBSCRIBED|INSPECTION_SCHEDULED|INSPECTION_ASSIGNED|INSPECTION_STARTED|INSPECTION_OBSERVED|INSPECTION_COMPLETED|INSPECTION_CANCELLED|RENEWAL_REQUESTED|RENEWAL_COMPLETED|CASE_OPENED|CASE_REMEDIATED|CASE_RESOLVED|CASE_REOPENED
+  fromStatus         String?
+  toStatus           String?
+  comment            String?
+  metadata           Json?
+  createdAt          DateTime @default(now())
+
+  application       Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  workflowInstance  WorkflowInstance? @relation(fields: [workflowInstanceId], references: [id], onDelete: SetNull)
+
+  @@index([applicationId, createdAt])
+  @@index([eventType])
+}
+
+/// Granted approval (issued when all workflow tracks clear). Renewal engine uses this.
+model Approval {
+  id             String    @id @default(uuid())
+  approvalNo     String    @unique
+  applicationId  String
+  approvalTypeId String
+  unitId         String
+  status         String    @default("ACTIVE") // ACTIVE | EXPIRED | REVOKED
+  issuedAt       DateTime?
+  validTill      DateTime?
+  // ── Phase 7: renewals ──
+  /// Latest renewal application opened against this approval (dedup for pending renewals).
+  renewalApplicationId String?  @unique
+  /// When the pre-expiry renewal alert was last sent (reset on each renewal).
+  renewalAlertAt DateTime?
+  /// When the approval was last renewed.
+  renewedAt      DateTime?
+  renewalCount   Int       @default(0)
+  createdAt      DateTime  @default(now())
+
+  application        Application   @relation("ApprovalIssuedFrom", fields: [applicationId], references: [id], onDelete: Cascade)
+  renewalApplication Application?  @relation("ApprovalRenewal", fields: [renewalApplicationId], references: [id], onDelete: SetNull)
+  linkedBy          Application[]  @relation("ApplicationLinkedApproval")
+  approvalType      ApprovalType   @relation(fields: [approvalTypeId], references: [id])
+  unit              Unit           @relation(fields: [unitId], references: [id])
+
+  @@index([unitId, status])
+  @@index([validTill])
+}
 
 /// An application for one approval type on behalf of a unit.
 model Application {
@@ -249,6 +342,8 @@ model Application {
   /// Guided-form responses (keys from ApprovalType.formSchema).
   formData         Json     @default("{}")
   riskCategory     String?
+  /// Phase 7 — set when this application is a renewal of an existing approval.
+  linkedApprovalId String?
   submittedAt      DateTime?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -257,11 +352,22 @@ model Application {
   unit          Unit                  @relation(fields: [unitId], references: [id])
   creator       User                  @relation(fields: [createdById], references: [id])
   checklistItem ChecklistItem?        @relation(fields: [checklistItemId], references: [id], onDelete: SetNull)
+  linkedApproval Approval?            @relation("ApplicationLinkedApproval", fields: [linkedApprovalId], references: [id], onDelete: SetNull)
+  /// The approval whose latest renewal cycle this application belongs to.
+  renewalFor     Approval?            @relation("ApprovalRenewal")
   documents     ApplicationDocument[]
+  workflowInstances WorkflowInstance[]
+  events        WorkflowEvent[]
+  approvals     Approval[]            @relation("ApprovalIssuedFrom")
+  inspections   Inspection[]
+  complianceCases ComplianceCase[]
+  riskAssessment RiskAssessment?
+  grievances    Grievance[]
 
   @@index([createdById])
   @@index([status])
   @@index([unitId])
+  @@index([linkedApprovalId])
 }
 
 /// One document submitted (or reused) for an application's required doc type.
@@ -355,14 +461,273 @@ model ChecklistItem {
 model Notification {
   id        String   @id @default(uuid())
   userId    String
-  type      String   // CHECKLIST_READY | APPLICATION | QUERY | INSPECTION | RENEWAL | GRIEVANCE | SYSTEM
+  type      String   // CHECKLIST_READY | APPLICATION | QUERY | INSPECTION | RENEWAL | COMPLIANCE | GRIEVANCE | SYSTEM
   title     String
   message   String
   data      Json?
-  isRead    Boolean  @default(false)
+  isRead   Boolean  @default(false)
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead])
+}
+
+// ─────────────────── Phase 6: inspections & risk scrutiny ───────────────
+
+/// Persisted risk-based scrutiny decision for an application.
+/// Recomputed on demand; the snapshot drives inspection planning.
+model RiskAssessment {
+  id                String   @id @default(uuid())
+  applicationId     String   @unique
+  score             Int      // 0–100
+  category          String   // LOW | MEDIUM | HIGH
+  scrutinyLevel     String   // DESK | ENHANCED | PHYSICAL
+  requiresInspection Boolean @default(false)
+  factors           Json     // [{code,label,points,detail}]
+  assessedAt        DateTime @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+/// One (joint) site inspection — a single visit covering several departments.
+model Inspection {
+  id            String   @id @default(uuid())
+  applicationId String
+  unitId        String
+  title         String
+  scheduledAt   DateTime
+  venue         String? // site address (defaults to the unit address)
+  status        String   @default("SCHEDULED") // SCHEDULED | IN_PROGRESS | COMPLETED | CANCELLED
+  /// Risk score snapshot taken when the visit was planned.
+  riskScoreAtScheduling Int?
+  findings       String? // consolidated field report
+  complianceStatus String? // COMPLIANT | DEFICIENT | NON_COMPLIANT
+  completedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  application  Application             @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  unit         Unit                    @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  participants InspectionParticipant[]
+  observations InspectionObservation[]
+  complianceCase ComplianceCase?
+
+  @@index([status, scheduledAt])
+  @@index([unitId])
+  @@index([applicationId])
+}
+
+/// A department invited to the joint inspection + its assigned inspector.
+model InspectionParticipant {
+  id            String    @id @default(uuid())
+  inspectionId  String
+  departmentId  String
+  /// Assigned inspector (INSPECTOR role). Null → still unassigned.
+  inspectorId   String?
+  /// Set when the inspector has filed their department's observation.
+  observedAt    DateTime?
+  createdAt     DateTime  @default(now())
+
+  inspection Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  department Department @relation(fields: [departmentId], references: [id])
+  inspector  User?      @relation(fields: [inspectorId], references: [id], onDelete: SetNull)
+  observations InspectionObservation[]
+
+  @@unique([inspectionId, departmentId])
+  @@index([inspectorId])
+}
+
+/// One department's field observations filed during the visit.
+model InspectionObservation {
+  id            String   @id @default(uuid())
+  inspectionId  String
+  participantId String
+  inspectorId   String
+  compliant     Boolean
+  notes         String
+  createdAt     DateTime @default(now())
+
+  inspection  Inspection             @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  participant InspectionParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@index([inspectionId])
+}
+
+// ─────────────────── Phase 7: renewals & compliance ───────────────
+
+/// A compliance gap found by an inspection — tracked until remediated.
+/// OPEN → REMEDIATED → RESOLVED (officer can send it back to OPEN).
+model ComplianceCase {
+  id            String   @id @default(uuid())
+  unitId        String
+  applicationId String?
+  /// One case per inspection (null only if detached manually).
+  inspectionId  String?  @unique
+  status        String   @default("OPEN") // OPEN | REMEDIATED | RESOLVED
+  /// Severity copied from the inspection verdict: DEFICIENT | NON_COMPLIANT.
+  severity      String
+  findings      String
+  /// Deadline for the unit to submit remediation evidence.
+  remediationDueAt DateTime?
+  remediationNotes String?
+  remediatedAt  DateTime?
+  resolutionNotes String?
+  resolvedAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  unit        Unit          @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  application Application?  @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  inspection  Inspection?   @relation(fields: [inspectionId], references: [id], onDelete: SetNull)
+
+  @@index([unitId, status])
+  @@index([status])
+}
+
+// ─────────────────── Phase 8: incentives & schemes ───────────────
+
+/// A government incentive scheme units can discover and claim.
+model IncentiveScheme {
+  id            String   @id @default(uuid())
+  code          String   @unique // e.g. "MSME_CAPITAL_SUBSIDY_001"
+  name          String
+  description   String
+  /// SUBSIDY | INTEREST_SUBVENTION | GREEN_BONUS | TAX_REBATE | GRANT
+  category      String
+  /// Granting authority, e.g. "Department of Industries & SME".
+  authority     String
+  /// Administering department code (ENV | FIRE | LABOUR | INDUSTRY).
+  department    String?
+  /// REIMBURSEMENT | DIRECT_TRANSFER | TAX_CREDIT
+  benefitType   String
+  benefitSummary String // e.g. "25% of plant & machinery cost"
+  /// Ceiling in INR (null = uncapped).
+  maxAmountInr  Int?
+  /// Eligibility condition tree — evaluated with the Phase-2 condition engine.
+  eligibility   Json
+  /// Guidance for applicants, e.g. ["udyam_certificate", "project_report"].
+  requiredDocuments Json @default("[]")
+  /// Application window (null = always open).
+  opensOn       DateTime?
+  closesOn      DateTime?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  claims        IncentiveClaim[]
+
+  @@index([active, category])
+}
+
+/// One unit's claim against one scheme + its decision/disbursement trail.
+model IncentiveClaim {
+  id           String  @id @default(uuid())
+  schemeId     String
+  unitId       String
+  createdById  String
+  /// SUBMITTED | UNDER_REVIEW | APPROVED | REJECTED | DISBURSED | UTILISED
+  status       String  @default("SUBMITTED")
+  requestedAmountInr Int
+  approvedAmountInr  Int?
+  /// Eligibility evaluation snapshot taken at filing time.
+  eligibility  Json
+  notes        String?
+  decisionNotes String?
+  decidedById  String?
+  decidedAt    DateTime?
+  disbursementRef String?
+  disbursedAt  DateTime?
+  utilisationNotes String?
+  utilisedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  scheme IncentiveScheme    @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+  unit   Unit               @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  events IncentiveClaimEvent[]
+
+  @@index([unitId, status])
+  @@index([schemeId, status])
+  @@index([status])
+}
+
+/// Append-only audit trail for a claim's lifecycle.
+model IncentiveClaimEvent {
+  id        String  @id @default(uuid())
+  claimId   String
+  actorId   String  @default("system")
+  actorRole String  @default("SYSTEM")
+  /// CLAIM_SUBMITTED|CLAIM_REVIEW_STARTED|CLAIM_APPROVED|CLAIM_REJECTED|CLAIM_DISBURSED|CLAIM_UTILISED
+  eventType String
+  comment   String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  claim IncentiveClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId, createdAt])
+}
+
+// ─────────────────── Phase 9: dashboards, analytics, alerts & grievances ───────────────
+
+/// A citizen/unit grievance against the approval & compliance process.
+/// OPEN → IN_PROGRESS → RESOLVED / REJECTED, with ESCALATED as a
+/// side-state (manual or SLA-driven auto-escalation).
+model Grievance {
+  id           String   @id @default(uuid())
+  /// Human-readable reference, e.g. GRV-20260928-1A2B.
+  referenceNo  String   @unique
+  subject      String
+  description  String
+  /// SERVICE_DELAY | PROCESS_ISSUE | CORRUPTION_REPORT | OTHER
+  category     String
+  /// LOW | MEDIUM | HIGH
+  priority     String   @default("MEDIUM")
+  /// OPEN | IN_PROGRESS | ESCALATED | RESOLVED | REJECTED
+  status       String   @default("OPEN")
+  /// Number of times the grievance has been escalated (0 = never).
+  escalationLevel Int   @default(0)
+  /// Response SLA — auto-escalation fires when OPEN/IN_PROGRESS passes this.
+  slaDueAt     DateTime
+  unitId       String?
+  applicationId String?
+  createdById  String
+  assignedToId String?
+  /// Officer's public response shown to the filer.
+  responseNotes String?
+  respondedAt  DateTime?
+  resolvedAt   DateTime?
+  /// Set when escalated: manual (reason) or by the auto-escalation sweep.
+  escalatedAt  DateTime?
+  escalationReason String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  unit        Unit?        @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  application Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  creator     User         @relation("GrievanceCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  assignee    User?        @relation("GrievanceAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  events      GrievanceEvent[]
+
+  @@index([status])
+  @@index([unitId, status])
+  @@index([createdById])
+}
+
+/// Append-only audit trail for a grievance's lifecycle.
+model GrievanceEvent {
+  id         String  @id @default(uuid())
+  grievanceId String
+  actorId    String  @default("system")
+  actorRole  String  @default("SYSTEM")
+  /// GRIEVANCE_FILED|ACKNOWLEDGED|RESPONSE_ADDED|ESCALATED|AUTO_ESCALATED|RESOLVED|REJECTED|REASSIGNED
+  eventType  String
+  comment    String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  grievance Grievance @relation(fields: [grievanceId], references: [id], onDelete: Cascade)
+
+  @@index([grievanceId, createdAt])
 }

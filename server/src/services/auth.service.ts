@@ -223,7 +223,10 @@ async function issueSession(userId: string) {
 export async function getUserProfile(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    include: { roles: { include: { role: true } } },
+    include: {
+      roles: { include: { role: true } },
+      department: { select: { code: true, name: true } },
+    },
   });
   if (!user) {
     throw new AppError({ message: "User not found", status: 404, code: "NOT_FOUND" });
@@ -232,6 +235,9 @@ export async function getUserProfile(userId: string) {
     user: {
       ...publicUser(user),
       designation: user.designation,
+      department: user.department
+        ? { code: user.department.code, name: user.department.name }
+        : null,
       roles: user.roles.map((ur) => ur.role.name as string),
     },
   };

@@ -2,6 +2,8 @@ import type { Request, Response } from "express";
 import { asyncHandler } from "../middleware/error.js";
 import { currentUser } from "../middleware/auth.js";
 import * as service from "../services/applications.service.js";
+import { respondToQuery } from "../workflow/department.service.js";
+import { z } from "zod";
 
 /** POST /api/v1/applications */
 export const create = asyncHandler(async (req: Request, res: Response) => {
@@ -75,6 +77,14 @@ export const submit = asyncHandler(async (req: Request, res: Response) => {
   const user = currentUser(res);
   const application = await service.submitApplication(user.id, String(req.params.id));
   res.json({ success: true, data: { application } });
+});
+
+/** POST /api/v1/applications/:id/query-response */
+export const respondQuery = asyncHandler(async (req: Request, res: Response) => {
+  const user = currentUser(res);
+  const { response } = z.object({ response: z.string().min(1).max(2000) }).parse(req.body);
+  const data = await respondToQuery(user, String(req.params.id), response);
+  res.json({ success: true, data });
 });
 
 /** GET /api/v1/units/:id/documents (mounted in units router) */

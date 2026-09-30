@@ -8,6 +8,7 @@ import { prisma } from "../utils/prisma.js";
 import { AppError } from "../middleware/error.js";
 import { assertOwnsUnit } from "./units.service.js";
 import { createNotification } from "./notifications.service.js";
+import { activateApplicationWorkflow } from "../workflow/runtime.service.js";
 import { persistBuffer, removeStored } from "../utils/storage.js";
 import {
   isDuplicateChecksum,
@@ -28,7 +29,7 @@ export const updateFormSchema = z.object({
   formData: z.record(z.string(), z.unknown()),
 });
 
-function applicationNo(): string {
+export function applicationNo(): string {
   const d = new Date();
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -114,6 +115,25 @@ export async function getById(userId: string, applicationId: string) {
         orderBy: { createdAt: "asc" },
       },
       checklistItem: { select: { id: true, status: true } },
+      workflowInstances: {
+        include: { department: { select: { code: true, name: true } } },
+        orderBy: { createdAt: "asc" },
+      },
+      events: { orderBy: { createdAt: "asc" } },
+      approvals: true,
+      riskAssessment: true,
+      inspections: {
+        include: {
+          participants: {
+            include: {
+              department: { select: { code: true, name: true } },
+              inspector: { select: { fullName: true } },
+            },
+            orderBy: { createdAt: "asc" },
+          },
+        },
+        orderBy: { scheduledAt: "asc" },
+      },
     },
   });
   if (!application) {
@@ -342,6 +362,9 @@ export async function submitApplication(userId: string, applicationId: string) {
     data: { status: "SUBMITTED", submittedAt: new Date(), updatedAt: new Date() },
   });
 
+  // Fan the application out into its department workflow tracks
+  await activateApplicationWorkflow(application.id);
+
   await createNotification({
     userId,
     type: "APPLICATION",
@@ -350,5 +373,6 @@ export async function submitApplication(userId: string, applicationId: string) {
     data: { applicationId: updated.id },
   });
 
-  return updated;
+  // Activation moves the status to UNDER_SCRUTINY — return the fresh row
+  return (await prisma.application.findUnique({ where: { id: application.id } })) ?? updated;
 }

@@ -3,6 +3,7 @@ import { hashPassword } from "../src/utils/password.js";
 import { env } from "../src/config/env.js";
 import { prisma } from "../src/utils/prisma.js";
 import { seedMasterData } from "./seed-master-data.js";
+import { seedIncentives } from "./seed-incentives.js";
 
 const ROLES: { name: RoleName; description: string }[] = [
   { name: "SUPER_ADMIN", description: "Platform administrator with full control" },
@@ -27,6 +28,9 @@ async function main(): Promise<void> {
 
   // 1b) Master data: departments, authorities, approval types, document types, rules
   await seedMasterData();
+
+  // 1c) Incentive schemes catalogue (Phase 8)
+  await seedIncentives();
 
   // 2) Bootstrap super admin (credentials come ONLY from environment variables)
   const adminEmail = env.ADMIN_EMAIL;
