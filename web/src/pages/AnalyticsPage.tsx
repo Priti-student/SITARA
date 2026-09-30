@@ -29,7 +29,7 @@ function Breakdown({ title, data, keys }: { title: string; data: Record<string, 
 }
 
 export function AnalyticsPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [overview, setOverview] = useState<Overview | null>(null);
   const [feed, setFeed] = useState<AlertFeed | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -45,18 +45,7 @@ export function AnalyticsPage() {
   const kpis = overview?.kpis;
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <Link to="/grievances" className="btn btn-ghost btn-sm">Grievances</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <div className="module-title-row">
             <h1>Analytics &amp; Alerts</h1>
@@ -156,7 +145,6 @@ export function AnalyticsPage() {
             </ul>
           </section>
         ) : null}
-      </main>
-    </div>
+      </div>
   );
 }

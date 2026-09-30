@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { listUnits, type Unit } from "../api/units";
 import {
@@ -36,7 +35,7 @@ function statusChip(status: string, overdue?: boolean) {
 }
 
 export function GrievancesPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [items, setItems] = useState<Grievance[] | null>(null);
   const [counts, setCounts] = useState<GrievanceCounts>({});
   const [status, setStatus] = useState("ALL");
@@ -142,18 +141,7 @@ export function GrievancesPage() {
   if (!user) return null;
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <Link to="/analytics" className="btn btn-ghost btn-sm">Analytics</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <div className="module-title-row">
             <h1>Grievances</h1>
@@ -379,8 +367,7 @@ export function GrievancesPage() {
             )}
           </section>
         ) : null}
-      </main>
-    </div>
+      </div>
   );
 }
 

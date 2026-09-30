@@ -1,66 +1,31 @@
 import { Link } from "react-router-dom";
 
-const FEATURES = [
-  {
-    title: "Personalised approval checklist",
-    text: "Answer a short wizard — sector, district, size, stage — and get every licence, NOC and registration you need.",
-  },
-  {
-    title: "Single-window applications",
-    text: "Submit once, reuse verified data, and let departments work in parallel behind the scenes.",
-  },
-  {
-    title: "Live SLA tracking",
-    text: "Watch every approval timeline, get alerts before deadlines, and escalate when services stall.",
-  },
-  {
-    title: "Renewals & compliance",
-    text: "Never miss a renewal. SITARA reminds you, tracks compliance conditions and flags gaps.",
-  },
-  {
-    title: "Inspections, scheduled",
-    text: "Joint inspections planned by district and date — fewer site visits, clearer next steps.",
-  },
-  {
-    title: "Incentives & schemes",
-    text: "Auto-matched government schemes with one-click application and utilisation tracking.",
-  },
-];
-
 export function HomePage() {
   return (
     <div className="home-page">
-      <section className="hero">
-        <p className="eyebrow">Government of India · Ease of Doing Business</p>
-        <h1>
-          Every approval. One portal.{" "}
-          <span className="accent">Zero guesswork.</span>
-        </h1>
-        <p className="hero-sub">
-          SITARA unifies industrial registrations, permissions, licences, NOCs,
-          inspections and incentive schemes into a single intelligent dashboard —
-          for applicants and departments alike.
-        </p>
-        <div className="hero-actions">
-          <Link to="/register" className="btn btn-primary">
-            Get started
-          </Link>
-          <Link to="/login" className="btn btn-ghost">
-            Sign in
-          </Link>
-        </div>
-      </section>
-      <section className="features">
-        <h2>Built for the end-to-end journey</h2>
-        <div className="feature-grid">
-          {FEATURES.map((f) => (
-            <div className="feature-card" key={f.title}>
-              <h3>{f.title}</h3>
-              <p>{f.text}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <header className="landing-nav">
+        <Link to="/" className="landing-brand"><span className="brand-mark">S</span><span><strong>SITARA</strong><small>Approvals · Compliance · Growth</small></span></Link>
+        <nav aria-label="Main navigation"><a href="#home">Home</a><a href="#maharashtra">About</a><a href="#home">Features</a><a href="#maharashtra">Maharashtra</a></nav>
+        <Link to="/login" className="btn btn-primary nav-login">Login</Link>
+      </header>
+      <main>
+        <section className="hero landing-hero" id="home">
+          <div className="hero-copy">
+            <p className="eyebrow">Government of Maharashtra · One platform, endless possibilities</p>
+            <h1>Simplifying industrial approvals &amp; compliance</h1>
+            <p className="hero-sub">A simpler way to manage registrations, permissions, licences, NOCs, inspections and renewals — all in one place.</p>
+            <div className="landing-perks"><span>✓ Single window access</span><span>✓ Guided applications</span><span>✓ Real time tracking</span></div>
+            <div className="hero-actions"><Link to="/register" className="btn btn-primary">Get started <span aria-hidden="true">→</span></Link><a href="#features" className="btn btn-ghost">Learn more</a></div>
+          </div>
+          <div className="hero-image" role="img" aria-label="Industrial development in Maharashtra" />
+        </section>
+        <section className="trust-strip" id="maharashtra">
+          <div className="trust-copy"><strong>Trusted by businesses. Enabled by Government.</strong><span>Supporting industries with a transparent and efficient approval ecosystem.</span></div>
+          <div className="govt-seal"><span className="seal-mark" aria-hidden="true">♜</span><span><b>Government of India</b><small>Government of India</small></span></div>
+          <div className="govt-seal"><span className="seal-mark seal-state" aria-hidden="true">✺</span><span><b>Maharashtra</b><small>Government of Maharashtra</small></span></div>
+        </section>
+      </main>
+      <footer className="landing-footer">SITARA <span>· Government of Maharashtra</span></footer>
     </div>
   );
 }

@@ -1,14 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import {
-  evaluateRules,
-  listRules,
-  type RuleListRow,
-} from "../api/rules";
+import { evaluateRules, listRules, type RuleListRow } from "../api/rules";
 
 export function RulesPage() {
-  const { user, signOut } = useAuth();
   const [rules, setRules] = useState<RuleListRow[]>([]);
   const [byType, setByType] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -59,22 +52,7 @@ export function RulesPage() {
   }
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">
-            Dashboard
-          </Link>
-          <span className="chip chip-user">{user?.roles.join(", ") ?? ""}</span>
-          <span className="chip chip-accent">{user?.email ?? ""}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>
-            Sign out
-          </Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <h1>
             Regulatory <span className="accent">Knowledge Engine</span>
@@ -143,7 +121,6 @@ export function RulesPage() {
             </tbody>
           </table>
         </section>
-      </main>
-    </div>
+      </div>
   );
 }

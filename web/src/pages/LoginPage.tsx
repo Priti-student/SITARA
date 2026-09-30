@@ -26,10 +26,15 @@ export function LoginPage() {
 
   return (
     <div className="auth-wrap">
-      <div className="auth-card">
+      <div className="auth-card auth-card-split">
+        <aside className="auth-aside">
+          <Link to="/" className="landing-brand auth-brand"><span className="brand-mark">S</span><span><strong>SITARA</strong><small>Approvals · Compliance · Growth</small></span></Link>
+          <div className="auth-aside-copy"><p className="eyebrow">Government of Maharashtra</p><h2>Your industrial compliance partner</h2><p>Access approvals, track applications, manage renewals and explore government support schemes — all in one place.</p></div>
+          <div className="auth-illustration" aria-hidden="true">SITARA</div>
+        </aside>
+        <section className="auth-content">
         <div className="brand-block">
-          <h1 className="brand-name">SITARA</h1>
-          <p className="brand-tag">Unified Industrial Approvals &amp; Compliance</p>
+          <p className="brand-tag">SITARA · Government of Maharashtra</p>
         </div>
         <h2 className="auth-title">Sign in</h2>
         <form onSubmit={onSubmit} className="form-grid" noValidate>
@@ -66,6 +71,7 @@ export function LoginPage() {
         <p className="auth-hint">
           Demo super admin: <code>admin@sitara.gov.in</code> (set in server/.env)
         </p>
+        </section>
       </div>
     </div>
   );

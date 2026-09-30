@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   createChecklist,
@@ -21,7 +21,7 @@ const ACTIVITY_FLAGS: { key: string; label: string }[] = [
 ];
 
 export function CreateChecklistPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0);
@@ -86,18 +86,7 @@ export function CreateChecklistPage() {
   if (!user) return null;
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <Link to="/checklists" className="btn btn-ghost btn-sm">My Checklists</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <h1>
             Approval <span className="accent">Wizard</span>
@@ -215,7 +204,6 @@ export function CreateChecklistPage() {
             ) : null}
           </div>
         </section>
-      </main>
-    </div>
+      </div>
   );
 }

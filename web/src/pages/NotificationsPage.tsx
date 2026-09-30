@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   listNotifications,
@@ -9,7 +8,7 @@ import {
 } from "../api/notifications";
 
 export function NotificationsPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unread, setUnread] = useState(0);
   const [err, setErr] = useState<string | null>(null);
@@ -28,17 +27,7 @@ export function NotificationsPage() {
   if (!user) return null;
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <div className="module-title-row">
             <h1>
@@ -79,7 +68,6 @@ export function NotificationsPage() {
             ))
           )}
         </section>
-      </main>
-    </div>
+      </div>
   );
 }

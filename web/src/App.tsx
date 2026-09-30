@@ -1,6 +1,8 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import type { ReactNode } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AppShell } from "./components/AppShell";
+import { ROUTE_ROLES, hasAnyRole, type Role } from "./rbac";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
@@ -31,47 +33,14 @@ function ProtectedRoute({ element }: { element: ReactNode }): ReactNode {
   return user ? element : <Navigate to="/login" replace />;
 }
 
-function AdminRoute({ element }: { element: ReactNode }): ReactNode {
+/** Requires at least one of the given roles — the single role guard. */
+function RoleRoute({ element, roles }: { element: ReactNode; roles: readonly Role[] }): ReactNode {
   const { user, loading } = useAuth();
   if (loading) {
     return <div className="app-loading">Loading SITARA…</div>;
   }
   if (!user) return <Navigate to="/login" replace />;
-  const admin = user.roles.some((r) => r === "SUPER_ADMIN" || r === "STATE_ADMIN");
-  return admin ? element : <Navigate to="/dashboard" replace />;
-}
-
-function OfficerRoute({ element }: { element: ReactNode }): ReactNode {
-  const { user, loading } = useAuth();
-  if (loading) {
-    return <div className="app-loading">Loading SITARA…</div>;
-  }
-  if (!user) return <Navigate to="/login" replace />;
-  const officer = user.roles.some(
-    (r) =>
-      r === "DEPARTMENT_USER" ||
-      r === "APPROVING_AUTHORITY" ||
-      r === "STATE_ADMIN" ||
-      r === "SUPER_ADMIN"
-  );
-  return officer ? element : <Navigate to="/dashboard" replace />;
-}
-
-function InspectionsRoute({ element }: { element: ReactNode }): ReactNode {
-  const { user, loading } = useAuth();
-  if (loading) {
-    return <div className="app-loading">Loading SITARA…</div>;
-  }
-  if (!user) return <Navigate to="/login" replace />;
-  const allowed = user.roles.some(
-    (r) =>
-      r === "DEPARTMENT_USER" ||
-      r === "APPROVING_AUTHORITY" ||
-      r === "STATE_ADMIN" ||
-      r === "SUPER_ADMIN" ||
-      r === "INSPECTOR"
-  );
-  return allowed ? element : <Navigate to="/dashboard" replace />;
+  return hasAnyRole(user.roles, [...roles]) ? element : <Navigate to="/dashboard" replace />;
 }
 
 export function App() {
@@ -82,82 +51,66 @@ export function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route
-            path="/dashboard"
-            element={<ProtectedRoute element={<DashboardPage />} />}
-          />
-          <Route
-            path="/rules"
-            element={<AdminRoute element={<RulesPage />} />}
-          />
-          <Route
-            path="/checklists/new"
-            element={<ProtectedRoute element={<CreateChecklistPage />} />}
-          />
-          <Route
-            path="/checklists/:id"
-            element={<ProtectedRoute element={<ChecklistDetailPage />} />}
-          />
-          <Route
-            path="/checklists"
-            element={<ProtectedRoute element={<ChecklistsPage />} />}
-          />
-          <Route
-            path="/notifications"
-            element={<ProtectedRoute element={<NotificationsPage />} />}
-          />
-          <Route
-            path="/applications/new"
-            element={<ProtectedRoute element={<ApplicationsPage />} />}
-          />
-          <Route
-            path="/applications/:id"
-            element={<ProtectedRoute element={<ApplicationDetailPage />} />}
-          />
-          <Route
-            path="/applications"
-            element={<ProtectedRoute element={<ApplicationsPage />} />}
-          />
-          <Route
-            path="/department/applications/:id"
-            element={<OfficerRoute element={<DepartmentApplicationPage />} />}
-          />
-          <Route
-            path="/department"
-            element={<OfficerRoute element={<DepartmentInboxPage />} />}
-          />
-          <Route
-            path="/inspections/:id"
-            element={<InspectionsRoute element={<InspectionDetailPage />} />}
-          />
-          <Route
-            path="/inspections"
-            element={<InspectionsRoute element={<InspectionsPage />} />}
-          />
-          <Route
-            path="/renewals"
-            element={<ProtectedRoute element={<RenewalsPage />} />}
-          />
-          <Route
-            path="/compliance"
-            element={<ProtectedRoute element={<CompliancePage />} />}
-          />
-          <Route
-            path="/schemes"
-            element={<ProtectedRoute element={<SchemesPage />} />}
-          />
-          <Route
-            path="/claims"
-            element={<ProtectedRoute element={<ClaimsPage />} />}
-          />
-          <Route
-            path="/analytics"
-            element={<ProtectedRoute element={<AnalyticsPage />} />}
-          />
-          <Route
-            path="/grievances"
-            element={<ProtectedRoute element={<GrievancesPage />} />}
-          />
+
+          {/* Authenticated area — AppShell renders the role-aware topbar + sidebar. */}
+          <Route element={<ProtectedRoute element={<AppShell />} />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route
+              path="/rules"
+              element={<RoleRoute element={<RulesPage />} roles={ROUTE_ROLES.rules} />}
+            />
+            <Route
+              path="/checklists/new"
+              element={<RoleRoute element={<CreateChecklistPage />} roles={ROUTE_ROLES.applicant} />}
+            />
+            <Route
+              path="/checklists/:id"
+              element={<RoleRoute element={<ChecklistDetailPage />} roles={ROUTE_ROLES.applicant} />}
+            />
+            <Route
+              path="/checklists"
+              element={<RoleRoute element={<ChecklistsPage />} roles={ROUTE_ROLES.applicant} />}
+            />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route
+              path="/applications/new"
+              element={<RoleRoute element={<ApplicationsPage />} roles={ROUTE_ROLES.applicant} />}
+            />
+            <Route
+              path="/applications/:id"
+              element={<RoleRoute element={<ApplicationDetailPage />} roles={ROUTE_ROLES.applicant} />}
+            />
+            <Route
+              path="/applications"
+              element={<RoleRoute element={<ApplicationsPage />} roles={ROUTE_ROLES.applicant} />}
+            />
+            <Route
+              path="/department/applications/:id"
+              element={<RoleRoute element={<DepartmentApplicationPage />} roles={ROUTE_ROLES.officer} />}
+            />
+            <Route
+              path="/department"
+              element={<RoleRoute element={<DepartmentInboxPage />} roles={ROUTE_ROLES.officer} />}
+            />
+            <Route
+              path="/inspections/:id"
+              element={<RoleRoute element={<InspectionDetailPage />} roles={ROUTE_ROLES.inspections} />}
+            />
+            <Route
+              path="/inspections"
+              element={<RoleRoute element={<InspectionsPage />} roles={ROUTE_ROLES.inspections} />}
+            />
+            <Route path="/renewals" element={<RenewalsPage />} />
+            <Route path="/compliance" element={<CompliancePage />} />
+            <Route
+              path="/schemes"
+              element={<RoleRoute element={<SchemesPage />} roles={ROUTE_ROLES.applicant} />}
+            />
+            <Route path="/claims" element={<ClaimsPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/grievances" element={<GrievancesPage />} />
+          </Route>
+
           <Route
             path="*"
             element={

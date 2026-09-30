@@ -12,7 +12,7 @@ import {
 import { createInspection, getRiskAssessment, type RiskAssessment } from "../api/inspections";
 
 export function DepartmentApplicationPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const params = useParams();
   const navigate = useNavigate();
   const id = String(params.id);
@@ -85,21 +85,10 @@ export function DepartmentApplicationPage() {
   if (!user) return null;
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <Link to="/department" className="btn btn-ghost btn-sm">Dept Inbox</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
+    <div className="page">
       {err ? <div className="alert alert-error">{err}</div> : null}
 
-      <main>
-        {app ? (
+      {app ? (
           <>
             <section className="welcome">
               <div className="module-title-row">
@@ -370,7 +359,6 @@ export function DepartmentApplicationPage() {
         ) : (
           <div className="app-loading">Loading application…</div>
         )}
-      </main>
-    </div>
+      </div>
   );
 }

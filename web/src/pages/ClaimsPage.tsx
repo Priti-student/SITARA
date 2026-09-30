@@ -30,7 +30,7 @@ function statusChip(status: string) {
 const FILTERS = ["ALL", "SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED", "DISBURSED", "UTILISED"];
 
 export function ClaimsPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [items, setItems] = useState<ClaimListItem[] | null>(null);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [status, setStatus] = useState("ALL");
@@ -107,18 +107,7 @@ export function ClaimsPage() {
   if (!user) return null;
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <Link to="/schemes" className="btn btn-ghost btn-sm">Schemes</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <div className="module-title-row">
             <h1>Incentive Claims</h1>
@@ -346,7 +335,6 @@ export function ClaimsPage() {
             <p className="muted-text">Loading claim…</p>
           </section>
         ) : null}
-      </main>
-    </div>
+      </div>
   );
 }

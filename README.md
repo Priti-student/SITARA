@@ -223,6 +223,27 @@ ADMIN (.env)           admin@sitara.gov.in             OK     200    ✓ ALLOWED
 > re-run `npm run db:seed` — the seed now **refreshes** those credentials on
 > every run. All demo/seed passwords come from `.env`, never from code.
 
+**4. UI layer — dashboard, navigation & permitted actions are role-aware**
+
+The frontend resolves one **persona** per user (administration > department desk >
+field > industry side) from `web/src/rbac.ts` and drives everything from it:
+
+| Persona (roles) | Sidebar navigation | Dashboard |
+|---|---|---|
+| **Industry** (APPLICANT, UNIT_USER) | Apply (wizard/checklists/applications), Lifecycle (renewals, compliance, schemes, claims), Support | Industry Portal — quick actions + 8 applicant cards |
+| **Department** (DEPARTMENT_USER, APPROVING_AUTHORITY) | Scrutiny (inbox), Field Work, Monitoring (compliance, analytics, claims), Support | Department Desk — inbox-first with SLA/query tips |
+| **Inspector** (INSPECTOR) | Field Work, Monitoring (compliance, analytics), Support | Field Inspector — assigned visits & observations |
+| **Administration** (STATE_ADMIN, SUPER_ADMIN) | All of the above + Administration (knowledge rules), Renewals Oversight | State Command Centre — KPIs, escalations, governance |
+
+- Shared `AppShell` (`web/src/components/AppShell.tsx`) renders the topbar and
+  sidebar; per-page headers were removed — navigation never shows links a role
+  cannot use.
+- Route guards use one `RoleRoute` bound to `ROUTE_ROLES`: unit pages are
+  applicant-only, the inbox is officer-only, inspections include inspectors, and
+  `/rules` stays admin-only. The backend re-checks every call regardless.
+- Sign in with each demo user to see the four layouts; no rebuild of the API is
+  needed (`web/` only change).
+
 ## Regulatory Knowledge Engine (Phase 2)
 
 The `regulatory_rules.json` seed is imported into `RegulatoryRule` rows on every

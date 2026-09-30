@@ -18,7 +18,7 @@ function statusChip(status: string) {
 }
 
 export function InspectionsPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [items, setItems] = useState<InspectionSummary[] | null>(null);
   const [counts, setCounts] = useState<{ scheduled: number; active: number; completed: number; cancelled: number } | null>(null);
   const [filter, setFilter] = useState<Filter>("");
@@ -51,18 +51,7 @@ export function InspectionsPage() {
   ];
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <Link to="/department" className="btn btn-ghost btn-sm">Dept Inbox</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <div className="module-title-row">
             <h1>Joint inspections</h1>
@@ -167,8 +156,7 @@ export function InspectionsPage() {
             </div>
           )}
         </section>
-      </main>
-    </div>
+      </div>
   );
 }
 

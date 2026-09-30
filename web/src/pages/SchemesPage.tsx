@@ -37,7 +37,7 @@ function isBlocking(status: string | null | undefined): boolean {
 }
 
 export function SchemesPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [units, setUnits] = useState<Unit[]>([]);
   const [unitId, setUnitId] = useState("");
   const [items, setItems] = useState<SchemeRow[] | null>(null);
@@ -119,18 +119,7 @@ export function SchemesPage() {
   if (!user) return null;
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <Link to="/claims" className="btn btn-ghost btn-sm">Claims</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <div className="module-title-row">
             <h1>Incentive Schemes</h1>
@@ -287,7 +276,6 @@ export function SchemesPage() {
             Officers review claims under <Link to="/claims">Claims</Link> — disbursement sits with state/platform admins.
           </p>
         ) : null}
-      </main>
-    </div>
+      </div>
   );
 }

@@ -14,7 +14,7 @@ import {
 } from "../api/inspections";
 
 export function InspectionDetailPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const params = useParams();
   const id = String(params.id);
 
@@ -73,18 +73,7 @@ export function InspectionDetailPage() {
   const risk = insp.risk;
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <Link to="/inspections" className="btn btn-ghost btn-sm">Inspections</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <div className="module-title-row">
             <h1>{insp.title}</h1>
@@ -387,8 +376,7 @@ export function InspectionDetailPage() {
             </ul>
           )}
         </section>
-      </main>
-    </div>
+      </div>
   );
 }
 

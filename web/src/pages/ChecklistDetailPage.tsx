@@ -21,7 +21,7 @@ const STAGE_LABELS: Record<string, string> = {
 const ITEM_STATUS_ORDER = ["PENDING", "APPLIED", "APPROVED", "SKIPPED", "NOTED"];
 
 export function ChecklistDetailPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const params = useParams();
   const checklistId = String(params.id);
   const navigate = useNavigate();
@@ -63,13 +63,13 @@ export function ChecklistDetailPage() {
   if (!user) return null;
   if (err) {
     return (
-      <div className="dashboard">
+      <div className="page">
         <div className="alert alert-error">{err}</div>
         <Link to="/checklists">← Back to my checklists</Link>
       </div>
     );
   }
-  if (!cl) return <div className="dashboard"><p>Loading…</p></div>;
+  if (!cl) return <div className="page"><p>Loading…</p></div>;
 
   const byStage = new Map<string, typeof cl.items>();
   for (const item of cl.items) {
@@ -79,18 +79,7 @@ export function ChecklistDetailPage() {
   }
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <Link to="/checklists" className="btn btn-ghost btn-sm">My Checklists</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <div className="module-title-row">
             <h1>{cl.name}</h1>
@@ -143,7 +132,6 @@ export function ChecklistDetailPage() {
             </div>
           ))}
         </section>
-      </main>
-    </div>
+      </div>
   );
 }

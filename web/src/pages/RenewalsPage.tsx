@@ -23,7 +23,7 @@ function stateChip(state: string) {
 }
 
 export function RenewalsPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [items, setItems] = useState<DueRenewal[] | null>(null);
   const [alertDays, setAlertDays] = useState(60);
   const [days, setDays] = useState(60);
@@ -102,18 +102,7 @@ export function RenewalsPage() {
   const expired = (items ?? []).filter((a) => a.state === "EXPIRED").length;
   const WINDOW = [30, 60, 180, 400];
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <Link to="/compliance" className="btn btn-ghost btn-sm">Compliance</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <div className="module-title-row">
             <h1>Renewals</h1>
@@ -257,7 +246,6 @@ export function RenewalsPage() {
             <p className="muted-text">Loading readiness…</p>
           </section>
         ) : null}
-      </main>
-    </div>
+      </div>
   );
 }

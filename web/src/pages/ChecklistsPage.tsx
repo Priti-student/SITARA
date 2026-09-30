@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { listChecklists, type ChecklistSummary } from "../api/checklists";
 
 export function ChecklistsPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [items, setItems] = useState<ChecklistSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -19,18 +19,7 @@ export function ChecklistsPage() {
   if (!user) return null;
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <Link to="/checklists/new" className="btn btn-primary btn-sm">New Wizard</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <h1>
             My <span className="accent">Approval Checklists</span>
@@ -63,7 +52,6 @@ export function ChecklistsPage() {
             </div>
           )}
         </section>
-      </main>
-    </div>
+      </div>
   );
 }

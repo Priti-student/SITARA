@@ -12,7 +12,7 @@ function slaCell(item: DeptInbox["items"][number]) {
 }
 
 export function DepartmentInboxPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [inbox, setInbox] = useState<DeptInbox | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -46,18 +46,7 @@ export function DepartmentInboxPage() {
   if (!user) return null;
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <Link to="/applications" className="btn btn-ghost btn-sm">My Applications</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <div className="module-title-row">
             <h1>Department inbox{inbox?.myDepartment ? ` — ${inbox.myDepartment.name}` : ""}</h1>
@@ -155,7 +144,6 @@ export function DepartmentInboxPage() {
             </div>
           )}
         </section>
-      </main>
-    </div>
+      </div>
   );
 }

@@ -17,7 +17,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export function ApplicationsPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [items, setItems] = useState<ApplicationSummary[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
@@ -56,18 +56,7 @@ export function ApplicationsPage() {
   if (!user) return null;
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <Link to="/checklists" className="btn btn-ghost btn-sm">My Checklists</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <h1>
             My <span className="accent">Applications</span>
@@ -136,7 +125,6 @@ export function ApplicationsPage() {
             </tbody>
           </table>
         </section>
-      </main>
-    </div>
+      </div>
   );
 }

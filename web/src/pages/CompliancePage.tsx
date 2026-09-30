@@ -27,7 +27,7 @@ const SEVERITY_CLS: Record<string, string> = {
 };
 
 export function CompliancePage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [items, setItems] = useState<ComplianceCase[] | null>(null);
   const [counts, setCounts] = useState<ComplianceCounts | null>(null);
   const [filter, setFilter] = useState("");
@@ -113,18 +113,7 @@ export function CompliancePage() {
     { key: "RESOLVED", label: "Resolved" },
   ];
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <Link to="/renewals" className="btn btn-ghost btn-sm">Renewals</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <div className="module-title-row">
             <h1>Compliance monitoring</h1>
@@ -297,7 +286,6 @@ export function CompliancePage() {
             <p className="muted-text">Loading case…</p>
           </section>
         ) : null}
-      </main>
-    </div>
+      </div>
   );
 }

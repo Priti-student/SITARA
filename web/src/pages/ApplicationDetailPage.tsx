@@ -16,7 +16,7 @@ import {
 } from "../api/applications";
 
 export function ApplicationDetailPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const params = useParams();
   const id = String(params.id);
 
@@ -127,13 +127,13 @@ export function ApplicationDetailPage() {
   if (!user) return null;
   if (err) {
     return (
-      <div className="dashboard">
+      <div className="page">
         <div className="alert alert-error">{err}</div>
         <Link to="/applications">← Back to applications</Link>
       </div>
     );
   }
-  if (!app) return <div className="dashboard"><p>Loading…</p></div>;
+  if (!app) return <div className="page"><p>Loading…</p></div>;
 
   const locked = app.status !== "DRAFT" && app.status !== "QUERY_RESPONDED";
   const docsByType = new Map<string, ApplicationDoc[]>();
@@ -145,18 +145,7 @@ export function ApplicationDetailPage() {
   for (const v of vault) vaultByType.set(v.documentType.code, v);
 
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-brand">SITARA</div>
-        <nav className="topbar-nav">
-          <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
-          <Link to="/applications" className="btn btn-ghost btn-sm">My Applications</Link>
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>Sign out</Link>
-        </nav>
-      </header>
-
-      <main>
+    <div className="page">
         <section className="welcome">
           <div className="module-title-row">
             <h1>{app.applicationNo}</h1>
@@ -377,7 +366,6 @@ export function ApplicationDetailPage() {
             </ul>
           </section>
         ) : null}
-      </main>
-    </div>
+      </div>
   );
 }
