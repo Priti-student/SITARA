@@ -10,11 +10,11 @@ import { createApplication } from "../api/applications";
 import { errorMessage } from "../context/AuthContext";
 
 const STAGE_LABELS: Record<string, string> = {
-  pre_establishment: "1 · Pre-establishment",
-  pre_operation: "2 · Pre-operation",
-  operation: "3 · Operation",
-  renewal: "4 · Renewal",
-  post_operation: "5 · Post-operation",
+  pre_establishment: "Pre-establishment",
+  pre_operation: "Pre-operation",
+  operation: "Operation",
+  renewal: "Renewal",
+  post_operation: "Post-operation",
   any: "General",
 };
 

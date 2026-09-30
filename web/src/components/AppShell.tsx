@@ -57,7 +57,7 @@ export function AppShell() {
                 <NavLink
                   key={`${g.title}-${it.to}`}
                   to={it.to}
-                  end={it.to === "/dashboard"}
+                  end={it.to === "/dashboard" || it.to === "/checklists"}
                   className={({ isActive }) =>
                     ["sidenav-link", it.primary ? "sidenav-link-primary" : "", isActive ? "active" : ""]
                       .filter(Boolean)
