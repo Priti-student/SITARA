@@ -92,7 +92,7 @@ export function CreateChecklistPage() {
             Approval <span className="accent">Wizard</span>
           </h1>
           <p>
-            Step {step + 1} of 5 — {STEPS[step]}. Answer a few questions; SITARA
+            Step {step + 1} of 5 — {STEPS[step]}. Answer a few questions; NITI
             runs the Regulatory Knowledge Engine and builds your checklist.
           </p>
         </section>

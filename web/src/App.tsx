@@ -28,7 +28,7 @@ import { GrievancesPage } from "./pages/GrievancesPage";
 function ProtectedRoute({ element }: { element: ReactNode }): ReactNode {
   const { user, loading } = useAuth();
   if (loading) {
-    return <div className="app-loading">Loading SITARA…</div>;
+    return <div className="app-loading">Loading NITI…</div>;
   }
   return user ? element : <Navigate to="/login" replace />;
 }
@@ -37,7 +37,7 @@ function ProtectedRoute({ element }: { element: ReactNode }): ReactNode {
 function RoleRoute({ element, roles }: { element: ReactNode; roles: readonly Role[] }): ReactNode {
   const { user, loading } = useAuth();
   if (loading) {
-    return <div className="app-loading">Loading SITARA…</div>;
+    return <div className="app-loading">Loading NITI…</div>;
   }
   if (!user) return <Navigate to="/login" replace />;
   return hasAnyRole(user.roles, [...roles]) ? element : <Navigate to="/dashboard" replace />;

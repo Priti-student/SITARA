@@ -4,7 +4,7 @@ export function HomePage() {
   return (
     <div className="home-page">
       <header className="landing-nav">
-        <Link to="/" className="landing-brand"><span className="brand-mark">S</span><span><strong>SITARA</strong><small>Approvals · Compliance · Growth</small></span></Link>
+        <Link to="/" className="landing-brand"><span className="brand-mark">N</span><span><strong>NITI</strong><small>Approvals · Compliance · Growth</small></span></Link>
         <nav aria-label="Main navigation"><a href="#home">Home</a><a href="#maharashtra">About</a><a href="#home">Features</a><a href="#maharashtra">Maharashtra</a></nav>
         <Link to="/login" className="btn btn-primary nav-login">Login</Link>
       </header>
@@ -25,7 +25,7 @@ export function HomePage() {
           <div className="govt-seal"><span className="seal-mark seal-state" aria-hidden="true">✺</span><span><b>Maharashtra</b><small>Government of Maharashtra</small></span></div>
         </section>
       </main>
-      <footer className="landing-footer">SITARA <span>· Government of Maharashtra</span></footer>
+      <footer className="landing-footer">NITI <span>· Government of Maharashtra</span></footer>
     </div>
   );
 }

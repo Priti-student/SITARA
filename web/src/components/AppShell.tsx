@@ -25,7 +25,7 @@ export function AppShell() {
     <div className="dashboard">
       <header className="topbar">
         <Link to="/dashboard" className="topbar-brand">
-          SITARA
+          NITI
         </Link>
         <span className="chip chip-accent">{dash.label}</span>
         <nav className="topbar-nav" aria-label="Account">
