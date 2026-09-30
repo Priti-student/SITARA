@@ -864,7 +864,7 @@ input, textarea, select { min-height: 44px; }
 .shell-body main { min-width:0; }
 .page { width:100%; }
 .welcome { padding:clamp(1.25rem,2.5vw,2rem); margin:0 0 1.25rem; border:1px solid #e2eaf3; border-radius:18px; background:linear-gradient(110deg,#fff 0%,#f5f9fd 68%,#e9f3fa 100%); box-shadow:0 7px 24px rgba(22,53,84,.045); }
-.welcome .chip { background:#e7f3f1; color:#147768; }
+.welcome .chip { margin-bottom:.6rem; }
 .welcome h1 { margin:.25rem 0 .45rem; font-size:clamp(1.65rem,2.5vw,2.2rem); letter-spacing:-.03em; }
 .welcome h1 .accent { color:var(--primary); }
 .welcome p { max-width:900px; margin:.4rem 0; }
@@ -1140,3 +1140,16 @@ input, textarea, select { min-height: 44px; }
  .seal-mark { width:27px;height:27px; font-size:1rem; }
  .landing-footer { min-height:42px; padding:.65rem .9rem; font-size:.85rem; }
 }
+
+/* Data tables use the complete content column in every role workspace. */
+.page .rules-grid { width:100%; max-width:none; margin:1.25rem 0 0; padding:0; }
+.page .wizard:has(table) { width:100%; max-width:none; margin:0; padding:1rem 0; }
+.page .wizard:has(table) > table { width:100%; }
+.page .rules-grid > .table { width:100%; }
+@media(max-width:760px) {
+ .page .wizard:has(table), .page .rules-grid { overflow-x:auto; }
+ .page .wizard:has(table) > table, .page .rules-grid > .table { min-width:720px; }
+}
+.page .wizard { width:100%; max-width:none; margin:1.25rem 0; padding:1rem 0; }
+.chip-accent,
+.welcome .chip-accent { background:#e5e7eb; color:#1f2937; }
