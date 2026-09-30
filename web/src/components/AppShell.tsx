@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { DASHBOARDS, navGroupsFor, personaOf } from "../rbac";
+import { listNotifications } from "../api/notifications";
 
 /**
  * Shared authenticated layout: role-aware topbar + sidebar navigation
@@ -9,6 +11,10 @@ import { DASHBOARDS, navGroupsFor, personaOf } from "../rbac";
  */
 export function AppShell() {
   const { user, signOut } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+  useEffect(() => {
+    listNotifications().then((result) => setUnreadCount(result.unreadCount)).catch(() => setUnreadCount(0));
+  }, []);
   if (!user) return null;
 
   const persona = personaOf(user.roles);
@@ -22,12 +28,16 @@ export function AppShell() {
           SITARA
         </Link>
         <span className="chip chip-accent">{dash.label}</span>
-        <nav className="topbar-nav">
-          <span className="chip chip-user">{user.roles.join(", ")}</span>
-          <span className="chip topbar-email">{user.email}</span>
-          <Link to="/notifications" className="btn btn-ghost btn-sm">
-            Alerts
+        <nav className="topbar-nav" aria-label="Account">
+          <Link to="/notifications" className="notification-bell" aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ""}`}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
+            {unreadCount > 0 ? <span>{unreadCount > 9 ? "9+" : unreadCount}</span> : null}
           </Link>
+          <div className="topbar-profile">
+            <span className="profile-avatar" aria-hidden="true">{user.fullName.trim().charAt(0).toUpperCase()}</span>
+            <span className="profile-copy"><strong>{user.fullName}</strong><small>{persona === "APPLICANT" ? "Industrial Unit" : dash.label}</small></span>
+            <span className="profile-chevron" aria-hidden="true">⌄</span>
+          </div>
           <Link to="/" className="btn btn-ghost btn-sm" onClick={() => signOut()}>
             Sign out
           </Link>
